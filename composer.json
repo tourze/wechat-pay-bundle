@@ -9,6 +9,7 @@
         "tourze/easy-admin-attribute": "0.1.*",
         "tourze/bacon-qr-code-bundle": "0.0.*",
         "wechatpay/wechatpay": "^1.4",
+        "tourze/easy-admin-menu-bundle": "0.1.*",
         "tourze/doctrine-track-bundle": "0.1.*"
     },
     "autoload": {
