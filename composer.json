@@ -18,7 +18,20 @@
     "symfony/config": "^6.4",
     "doctrine/dbal": "^4.0",
     "doctrine/doctrine-bundle": "^2.13",
-    "symfony/http-kernel": "^6.4"
+    "symfony/http-kernel": "^6.4",
+    "symfony/console": "^6.4",
+    "nesbot/carbon": "^2.72 || ^3",
+    "yiisoft/json": "^1.0",
+    "symfony/event-dispatcher": "^6.4",
+    "symfony/http-foundation": "^6.4",
+    "symfony/lock": "^6.4",
+    "tourze/doctrine-snowflake-bundle": "0.1.*",
+    "tourze/doctrine-indexed-bundle": "0.0.*",
+    "doctrine/collections": "^2.3",
+    "symfony/event-dispatcher-contracts": "^2.5 | ^3",
+    "doctrine/persistence": "^3.1 || ^4",
+    "yiisoft/arrays": "^3",
+    "tourze/bundle-dependency": "0.0.*"
   },
   "autoload": {
     "psr-4": {
