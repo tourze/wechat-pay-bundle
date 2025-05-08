@@ -4,7 +4,6 @@ namespace WechatPayBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use DoctrineEnhanceBundle\Repository\CommonRepositoryAware;
 use WechatPayBundle\Entity\RefundOrder;
 
 /**
@@ -15,7 +14,6 @@ use WechatPayBundle\Entity\RefundOrder;
  */
 class RefundOrderRepository extends ServiceEntityRepository
 {
-    use CommonRepositoryAware;
 
     public function __construct(ManagerRegistry $registry)
     {
