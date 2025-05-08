@@ -2,44 +2,45 @@
   "name": "tourze/wechat-pay-bundle",
   "description": "微信支付",
   "type": "symfony-bundle",
+  "license": "MIT",
   "require": {
     "php": "^8.1",
-    "tourze/enum-extra": "~0.0.5",
-    "tourze/xml-helper": "0.0.*",
-    "tourze/easy-admin-attribute": "0.1.*",
-    "tourze/bacon-qr-code-bundle": "0.0.*",
-    "wechatpay/wechatpay": "^1.4",
-    "tourze/easy-admin-menu-bundle": "0.1.*",
-    "tourze/doctrine-track-bundle": "0.1.*",
-    "doctrine/orm": "^3.0",
-    "psr/log": "^3|^2|^1",
-    "symfony/framework-bundle": "^6.4",
-    "symfony/dependency-injection": "^6.4",
-    "symfony/config": "^6.4",
+    "doctrine/collections": "^2.3",
     "doctrine/dbal": "^4.0",
     "doctrine/doctrine-bundle": "^2.13",
-    "symfony/http-kernel": "^6.4",
-    "symfony/console": "^6.4",
-    "nesbot/carbon": "^2.72 || ^3",
-    "yiisoft/json": "^1.0",
-    "symfony/event-dispatcher": "^6.4",
-    "symfony/http-foundation": "^6.4",
-    "symfony/lock": "^6.4",
-    "tourze/doctrine-snowflake-bundle": "0.1.*",
-    "tourze/doctrine-indexed-bundle": "0.0.*",
-    "doctrine/collections": "^2.3",
-    "symfony/event-dispatcher-contracts": "^2.5 | ^3",
+    "doctrine/orm": "^3.0",
     "doctrine/persistence": "^3.1 || ^4",
+    "nesbot/carbon": "^2.72 || ^3",
+    "psr/log": "^3|^2|^1",
+    "symfony/config": "^6.4",
+    "symfony/console": "^6.4",
+    "symfony/dependency-injection": "^6.4",
+    "symfony/event-dispatcher": "^6.4",
+    "symfony/event-dispatcher-contracts": "^2.5 | ^3",
+    "symfony/framework-bundle": "^6.4",
+    "symfony/http-foundation": "^6.4",
+    "symfony/http-kernel": "^6.4",
+    "symfony/lock": "^6.4",
+    "tourze/bacon-qr-code-bundle": "0.0.*",
+    "tourze/bundle-dependency": "0.0.*",
+    "tourze/doctrine-indexed-bundle": "0.0.*",
+    "tourze/doctrine-snowflake-bundle": "0.1.*",
+    "tourze/doctrine-track-bundle": "0.1.*",
+    "tourze/easy-admin-attribute": "0.1.*",
+    "tourze/easy-admin-menu-bundle": "0.1.*",
+    "tourze/enum-extra": "~0.0.5",
+    "tourze/xml-helper": "0.0.*",
+    "wechatpay/wechatpay": "^1.4",
     "yiisoft/arrays": "^3",
-    "tourze/bundle-dependency": "0.0.*"
+    "yiisoft/json": "^1.0"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^2.1",
+    "phpunit/phpunit": "^10.0"
   },
   "autoload": {
     "psr-4": {
       "WechatPayBundle\\": "src"
     }
-  },
-  "require-dev": {
-    "phpunit/phpunit": "^10.0",
-    "phpstan/phpstan": "^2.1"
   }
 }
