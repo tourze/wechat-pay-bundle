@@ -2,6 +2,7 @@
 
 namespace WechatPayBundle\Service;
 
+use BaconQrCodeBundle\Service\QrcodeService;
 use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
 use HttpClientBundle\Service\SmartHttpClient;
@@ -12,7 +13,6 @@ use Tourze\XML\XML;
 use WechatPayBundle\Entity\PayOrder;
 use WechatPayBundle\Enum\PayOrderStatus;
 use WechatPayBundle\Repository\MerchantRepository;
-use WechatPayBundle\Repository\PayOrderRepository;
 use WechatPayBundle\Request\AppOrderParams;
 use Yiisoft\Arrays\ArrayHelper;
 use Yiisoft\Json\Json;
@@ -26,9 +26,8 @@ class UnifiedOrder
         private readonly LoggerInterface $logger,
         private readonly SmartHttpClient $httpClient,
         private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly PayOrderRepository $payOrderRepository,
         private readonly RequestStack $requestStack,
-        private readonly QrcodeService $qrcodeServiceImpl,
+        private readonly QrcodeService $qrcodeService,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -121,10 +120,10 @@ class UnifiedOrder
         if (!$prepayId) {
             throw new \Exception('获取微信APP支付关键参数出错');
         }
-        $codeUrl = $this->qrcodeServiceImpl;
+
         // 创建返回给客户端的数据
         $params = [
-            'code_url' => $codeUrl->getImageUrl($json['code_url']),
+            'code_url' => $this->qrcodeService->getImageUrl($json['code_url']),
             'timeStamp' => strval(Carbon::now()->getTimestamp()),
             'createDate' => date('Y-m-d H:i:s', time()),
             'description' => $description,
@@ -260,6 +259,6 @@ class UnifiedOrder
 
         $attributes['key'] = $key;
 
-        return mb_strtoupper((string) call_user_func_array($encryptMethod, [urldecode(http_build_query($attributes))]));
+        return strtoupper((string) call_user_func_array($encryptMethod, [urldecode(http_build_query($attributes))]));
     }
 }

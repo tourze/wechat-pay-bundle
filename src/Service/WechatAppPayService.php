@@ -134,7 +134,7 @@ class WechatAppPayService
         $ret['timestamp'] = time();
         $stringA = "appid={$ret['appid']}&noncestr={$ret['noncestr']}&package={$ret['package']}&partnerid={$ret['partnerid']}&prepayid={$ret['prepayid']}&timestamp={$ret['timestamp']}";
         $stringSignTemp = "{$stringA}&key={$merchant->getPemKey()}";
-        $sign = mb_strtoupper(md5($stringSignTemp));
+        $sign = strtoupper(md5($stringSignTemp));
         $ret['sign'] = $sign;
 
         $ret['retmsg'] = 'ok';
@@ -154,7 +154,7 @@ class WechatAppPayService
 
         $attributes['key'] = $key;
 
-        return mb_strtoupper((string) call_user_func_array($encryptMethod, [urldecode(http_build_query($attributes))]));
+        return strtoupper((string) call_user_func_array($encryptMethod, [urldecode(http_build_query($attributes))]));
     }
 
     public function notify()

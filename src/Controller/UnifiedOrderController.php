@@ -141,6 +141,6 @@ class UnifiedOrderController extends AbstractController
 
         $attributes['key'] = $key;
 
-        return mb_strtoupper((string) call_user_func_array($encryptMethod, [urldecode(http_build_query($attributes))]));
+        return strtoupper((string) call_user_func_array($encryptMethod, [urldecode(http_build_query($attributes))]));
     }
 }
