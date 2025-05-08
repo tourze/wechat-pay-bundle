@@ -6,8 +6,8 @@ use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Carbon\CarbonPeriod;
 use Doctrine\ORM\EntityManagerInterface;
-use FileSystemBundle\Service\MountManager;
 use HttpClientBundle\Service\SmartHttpClient;
+use League\Flysystem\FilesystemOperator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,7 +36,7 @@ class DownloadTradeBillCommand extends Command
         private readonly MerchantRepository $merchantRepository,
         private readonly WechatPayBuilder $payBuilder,
         private readonly TradeBillRepository $tradeBillRepository,
-        private readonly MountManager $mountManager,
+        private readonly FilesystemOperator $mountManager,
         private readonly SmartHttpClient $httpClient,
         private readonly EntityManagerInterface $entityManager,
     ) {
