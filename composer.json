@@ -1,24 +1,32 @@
 {
-    "name": "tourze/wechat-pay-bundle",
-    "description": "微信支付",
-    "type": "symfony-bundle",
-    "require": {
-        "php": "^8.1",
-        "tourze/enum-extra": "~0.0.5",
-        "tourze/xml-helper": "0.0.*",
-        "tourze/easy-admin-attribute": "0.1.*",
-        "tourze/bacon-qr-code-bundle": "0.0.*",
-        "wechatpay/wechatpay": "^1.4",
-        "tourze/easy-admin-menu-bundle": "0.1.*",
-        "tourze/doctrine-track-bundle": "0.1.*"
-    },
-    "autoload": {
-        "psr-4": {
-            "WechatPayBundle\\": "src"
-        }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^10.0",
-        "phpstan/phpstan": "^2.1"
+  "name": "tourze/wechat-pay-bundle",
+  "description": "微信支付",
+  "type": "symfony-bundle",
+  "require": {
+    "php": "^8.1",
+    "tourze/enum-extra": "~0.0.5",
+    "tourze/xml-helper": "0.0.*",
+    "tourze/easy-admin-attribute": "0.1.*",
+    "tourze/bacon-qr-code-bundle": "0.0.*",
+    "wechatpay/wechatpay": "^1.4",
+    "tourze/easy-admin-menu-bundle": "0.1.*",
+    "tourze/doctrine-track-bundle": "0.1.*",
+    "doctrine/orm": "^3.0",
+    "psr/log": "^3|^2|^1",
+    "symfony/framework-bundle": "^6.4",
+    "symfony/dependency-injection": "^6.4",
+    "symfony/config": "^6.4",
+    "doctrine/dbal": "^4.0",
+    "doctrine/doctrine-bundle": "^2.13",
+    "symfony/http-kernel": "^6.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "WechatPayBundle\\": "src"
     }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0",
+    "phpstan/phpstan": "^2.1"
+  }
 }
