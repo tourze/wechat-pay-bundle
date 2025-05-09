@@ -25,6 +25,7 @@
     "symfony/routing": "^6.4",
     "tourze/bacon-qr-code-bundle": "0.0.*",
     "tourze/bundle-dependency": "0.0.*",
+    "tourze/currency-manage-bundle": "0.0.*",
     "tourze/doctrine-indexed-bundle": "0.0.*",
     "tourze/doctrine-ip-bundle": "0.0.*",
     "tourze/doctrine-snowflake-bundle": "0.1.*",
