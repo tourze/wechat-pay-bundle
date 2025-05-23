@@ -29,7 +29,6 @@
     "symfony/yaml": "^6.4 || ^7.1",
     "tourze/bacon-qr-code-bundle": "0.0.*",
     "tourze/bundle-dependency": "0.0.*",
-    "tourze/currency-manage-bundle": "0.0.*",
     "tourze/doctrine-indexed-bundle": "0.0.*",
     "tourze/doctrine-ip-bundle": "0.0.*",
     "tourze/doctrine-snowflake-bundle": "0.1.*",

@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Ignore;
-use Tourze\CurrencyManageBundle\Service\CurrencyManager;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
@@ -22,7 +21,6 @@ use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
 use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\SelectField;
 use Tourze\EasyAdmin\Attribute\Filter\Filterable;
 use WechatPayBundle\Repository\RefundOrderRepository;
 use Yiisoft\Json\Json;
@@ -111,7 +109,6 @@ class RefundOrder
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '退款结果回调url'])]
     private ?string $notifyUrl = null;
 
-    #[SelectField(targetEntity: CurrencyManager::class)]
     #[ORM\Column(type: Types::STRING, length: 10, nullable: true, options: ['comment' => '退款币种'])]
     private ?string $currency = 'CNY';
 
