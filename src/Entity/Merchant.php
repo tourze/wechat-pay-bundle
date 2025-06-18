@@ -10,15 +10,6 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
 use WechatPayBundle\Repository\MerchantRepository;
 
 /**
@@ -26,17 +17,12 @@ use WechatPayBundle\Repository\MerchantRepository;
  *
  * 为了简化模型，我们只使用V3的接口
  */
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: MerchantRepository::class)]
 #[ORM\Table(name: 'wechat_payment_merchant', options: ['comment' => '微信支付商户配置'])]
 class Merchant implements \Stringable
 {
     use TimestampableAware;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -51,43 +37,26 @@ class Merchant implements \Stringable
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[BoolColumn]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
-    #[FormField(span: 10)]
-    #[Filterable]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 64, unique: true, options: ['comment' => '商户号'])]
     private string $mchId;
 
-    #[FormField(span: 14)]
-    #[Filterable]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '秘钥key'])]
     private ?string $apiKey = null;
 
-    #[FormField]
-    #[Keyword]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '商户API私钥'])]
     private ?string $pemKey = null;
 
-    #[FormField]
-    #[Keyword]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 128, options: ['comment' => '证书序列号'])]
     private ?string $certSerial = null;
 
-    #[FormField]
-    #[Keyword]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '微信支付平台证书'])]
     private ?string $pemCert = null;
 
-    #[Keyword]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
     private ?string $remark = null;
 

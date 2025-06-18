@@ -73,6 +73,5 @@ class PayOrderStatusTest extends TestCase
         $this->assertContains(PayOrderStatus::SUCCESS, $cases);
         $this->assertContains(PayOrderStatus::FAILED, $cases);
     }
-    
-    
+
 } 

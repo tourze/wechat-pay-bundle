@@ -110,7 +110,6 @@ class WechatAppPayServiceTest extends TestCase
         $result = $this->service->createAppOrder($params);
         
         // 验证结果
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('appid', $result);
         $this->assertArrayHasKey('partnerid', $result);
         $this->assertArrayHasKey('prepayid', $result);
@@ -169,7 +168,6 @@ class WechatAppPayServiceTest extends TestCase
         $result = $this->service->createAppOrder($params);
         
         // 验证结果
-        $this->assertIsArray($result);
         $this->assertEquals('default_merchant', $result['partnerid']);
     }
 
@@ -212,7 +210,6 @@ class WechatAppPayServiceTest extends TestCase
     {
         // 由于方法未实现，仅测试返回空数组
         $result = $this->service->getTradeOrderDetail('order123456');
-        $this->assertIsArray($result);
         $this->assertEmpty($result);
     }
     

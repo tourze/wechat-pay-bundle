@@ -5,8 +5,6 @@ namespace WechatPayBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use WechatPayBundle\Enum\BillType;
 use WechatPayBundle\Repository\TradeBillRepository;
 
@@ -17,8 +15,6 @@ use WechatPayBundle\Repository\TradeBillRepository;
 #[ORM\Table(name: 'ims_wechat_payment_trade_bill', options: ['comment' => '微信支付-交易账单'])]
 class TradeBill
 {
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]

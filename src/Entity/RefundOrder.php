@@ -14,11 +14,6 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use WechatPayBundle\Repository\RefundOrderRepository;
 use Yiisoft\Json\Json;
 
@@ -31,17 +26,12 @@ use Yiisoft\Json\Json;
  * @see https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_9.shtml
  * @see https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_4
  */
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: RefundOrderRepository::class)]
 #[ORM\Table(name: 'wechat_refund_order', options: ['comment' => '退款订单'])]
 class RefundOrder
 {
     use TimestampableAware;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -60,7 +50,6 @@ class RefundOrder
      * 有支付了，才可能有退款单.
      */
     #[Ignore]
-    #[ListColumn(title: '关联支付单')]
     #[ORM\ManyToOne(targetEntity: PayOrder::class, inversedBy: 'refundOrders')]
     private ?PayOrder $payOrder = null;
 

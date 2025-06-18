@@ -13,13 +13,7 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\CurdAction;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use WechatPayBundle\Enum\PayOrderStatus;
 use WechatPayBundle\Repository\PayOrderRepository;
 
@@ -32,17 +26,12 @@ use WechatPayBundle\Repository\PayOrderRepository;
  *
  * @see https://www.cnblogs.com/goodAndyxublog/p/13882587.html
  */
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: PayOrderRepository::class)]
 #[ORM\Table(name: 'wechat_pay_order', options: ['comment' => '微信支付单'])]
 class PayOrder
 {
     use TimestampableAware;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -57,7 +46,6 @@ class PayOrder
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ListColumn(title: '父订单')]
     #[ORM\ManyToOne(targetEntity: PayOrder::class)]
     private ?PayOrder $parent = null;
 
@@ -106,7 +94,6 @@ class PayOrder
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '附加数据'])]
     private ?string $attach = null;
 
-    #[FormField(span: 16)]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
     private ?string $remark = null;
 

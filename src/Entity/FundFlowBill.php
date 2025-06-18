@@ -5,8 +5,6 @@ namespace WechatPayBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use WechatPayBundle\Enum\AccountType;
 use WechatPayBundle\Repository\FundFlowBillRepository;
 
@@ -17,8 +15,6 @@ use WechatPayBundle\Repository\FundFlowBillRepository;
 #[ORM\Table(name: 'ims_wechat_payment_fund_flow_bill', options: ['comment' => '微信支付-资金账单'])]
 class FundFlowBill
 {
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
