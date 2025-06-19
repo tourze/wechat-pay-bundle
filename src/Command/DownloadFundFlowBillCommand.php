@@ -2,7 +2,6 @@
 
 namespace WechatPayBundle\Command;
 
-use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Carbon\CarbonPeriod;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,10 +27,10 @@ use Yiisoft\Json\Json;
  */
 #[AsCronTask('0 10 * * *')]
 #[AsCronTask('0 11 * * *')]
-#[AsCommand(name: 'wechat:pay:download-fund-flow-bill', description: '资金账单下载')]
+#[AsCommand(name: self::NAME, description: '资金账单下载')]
 class DownloadFundFlowBillCommand extends Command
 {
-    public const NAME = 'download-fund-flow-bill';
+    public const NAME = 'wechat:pay:download-fund-flow-bill';
 
     public function __construct(
         private readonly MerchantRepository $merchantRepository,
