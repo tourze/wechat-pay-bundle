@@ -23,6 +23,8 @@ use Yiisoft\Json\Json;
 #[AsCommand(name: 'wechat:refund:check-order-status', description: '检查退款订单状态')]
 class RefundCheckOrderStatusCommand extends Command
 {
+    public const NAME = 'refund-check-order-status';
+
     public function __construct(
         private readonly RefundOrderRepository $refundOrderRepository,
         private readonly EntityManagerInterface $entityManager,

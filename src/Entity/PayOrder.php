@@ -28,7 +28,7 @@ use WechatPayBundle\Repository\PayOrderRepository;
  */
 #[ORM\Entity(repositoryClass: PayOrderRepository::class)]
 #[ORM\Table(name: 'wechat_pay_order', options: ['comment' => '微信支付单'])]
-class PayOrder
+class PayOrder implements \Stringable
 {
     use TimestampableAware;
 
@@ -560,5 +560,10 @@ class PayOrder
         $this->updatedFromIp = $updatedFromIp;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->getId();
     }
 }

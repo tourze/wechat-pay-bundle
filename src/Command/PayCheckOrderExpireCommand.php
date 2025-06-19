@@ -25,6 +25,8 @@ use Yiisoft\Json\Json;
 #[AsCommand(name: 'wechat:pay:check-order-expire', description: '检查订单过期状态')]
 class PayCheckOrderExpireCommand extends Command
 {
+    public const NAME = 'pay-check-order-expire';
+
     public function __construct(
         private readonly PayOrderRepository $payOrderRepository,
         private readonly EntityManagerInterface $entityManager,

@@ -13,7 +13,7 @@ use WechatPayBundle\Repository\TradeBillRepository;
  */
 #[ORM\Entity(repositoryClass: TradeBillRepository::class)]
 #[ORM\Table(name: 'ims_wechat_payment_trade_bill', options: ['comment' => '微信支付-交易账单'])]
-class TradeBill
+class TradeBill implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -130,5 +130,10 @@ class TradeBill
         $this->localFile = $localFile;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->getId();
     }
 }

@@ -12,7 +12,7 @@ use WechatPayBundle\Repository\RefundGoodsDetailRepository;
 
 #[ORM\Entity(repositoryClass: RefundGoodsDetailRepository::class)]
 #[ORM\Table(name: 'wechat_refund_goods_detail', options: ['comment' => '退款订单-商品明细'])]
-class RefundGoodsDetail
+class RefundGoodsDetail implements \Stringable
 {
     use TimestampableAware;
 
@@ -163,5 +163,10 @@ class RefundGoodsDetail
         $this->refundQuantity = $refundQuantity;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->getId();
     }
 }

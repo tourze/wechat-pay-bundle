@@ -28,7 +28,7 @@ use Yiisoft\Json\Json;
  */
 #[ORM\Entity(repositoryClass: RefundOrderRepository::class)]
 #[ORM\Table(name: 'wechat_refund_order', options: ['comment' => '退款订单'])]
-class RefundOrder
+class RefundOrder implements \Stringable
 {
     use TimestampableAware;
 
@@ -379,5 +379,10 @@ class RefundOrder
         $this->updatedFromIp = $updatedFromIp;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->getId();
     }
 }

@@ -32,6 +32,8 @@ use Yiisoft\Json\Json;
 #[AsCommand(name: 'wechat:pay:download-trade-bill', description: '交易账单下载')]
 class DownloadTradeBillCommand extends Command
 {
+    public const NAME = 'download-trade-bill';
+
     public function __construct(
         private readonly MerchantRepository $merchantRepository,
         private readonly WechatPayBuilder $payBuilder,

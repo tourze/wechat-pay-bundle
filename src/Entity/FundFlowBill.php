@@ -13,7 +13,7 @@ use WechatPayBundle\Repository\FundFlowBillRepository;
  */
 #[ORM\Entity(repositoryClass: FundFlowBillRepository::class)]
 #[ORM\Table(name: 'ims_wechat_payment_fund_flow_bill', options: ['comment' => '微信支付-资金账单'])]
-class FundFlowBill
+class FundFlowBill implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -130,5 +130,10 @@ class FundFlowBill
         $this->localFile = $localFile;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->getId();
     }
 }
