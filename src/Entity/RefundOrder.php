@@ -3,6 +3,7 @@
 namespace WechatPayBundle\Entity;
 
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -311,7 +312,7 @@ class RefundOrder implements \Stringable
         $this->setRefundChannel($response['channel']);
         $this->setUserReceiveAccount($response['user_received_account']);
         $this->setSuccessTime(Carbon::parse($response['success_time']));
-        $this->setCreateTime(Carbon::parse($response['create_time']));
+        $this->setCreateTime(CarbonImmutable::parse($response['create_time']));
         $this->setStatus($response['status']);
     }
 
@@ -383,6 +384,6 @@ class RefundOrder implements \Stringable
 
     public function __toString(): string
     {
-        return (string) $this->getId();
+        return (string)$this->getId();
     }
 }
