@@ -3,7 +3,7 @@
 namespace WechatPayBundle\Service;
 
 use BaconQrCodeBundle\Service\QrcodeService;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use HttpClientBundle\Service\SmartHttpClient;
 use Psr\Log\LoggerInterface;
@@ -29,12 +29,11 @@ class UnifiedOrder
         private readonly RequestStack $requestStack,
         private readonly QrcodeService $qrcodeService,
         private readonly EntityManagerInterface $entityManager,
-    ) {
-    }
+    ) {}
 
     public function createH5Order(AppOrderParams $appOrderParams): array
     {
-        if (!$this->tradeType) {
+        if (empty($this->tradeType)) {
             throw new \Exception('请设置下单类型');
         }
 
@@ -55,11 +54,11 @@ class UnifiedOrder
         $payOrder->setTradeNo($appOrderParams->getContractId());
         $payOrder->setAttach($attach);
         $payOrder->setCreateIp($this->requestStack->getCurrentRequest()->getClientIp());
-        if ($appOrderParams->getOpenId()) {
+        if (!empty($appOrderParams->getOpenId())) {
             $payOrder->setOpenId($appOrderParams->getOpenId());
         }
 
-        $startTime = Carbon::now();
+        $startTime = CarbonImmutable::now();
         // 一般是15分钟后过期
         $expireTime = $startTime->clone()->addMinutes(15);
         $payOrder->setStartTime($startTime);
@@ -94,10 +93,10 @@ class UnifiedOrder
             'total_fee' => $payOrder->getTotalFee(),
             'spbill_create_ip' => $this->requestStack->getCurrentRequest()->getClientIp(),
         ];
-        if ($appOrderParams->getOpenId()) {
+        if (!empty($appOrderParams->getOpenId())) {
             $requestJson['openid'] = $appOrderParams->getOpenId();
         }
-        if ($payOrder->getAttach()) {
+        if (!empty($payOrder->getAttach())) {
             $requestJson['attach'] = $payOrder->getAttach();
         }
         $payOrder->setRequestJson(Json::encode($requestJson));
@@ -117,14 +116,14 @@ class UnifiedOrder
             'json' => $json,
         ]);
         $prepayId = ArrayHelper::getValue($json, 'prepay_id');
-        if (!$prepayId) {
+        if (empty($prepayId)) {
             throw new \Exception('获取微信APP支付关键参数出错');
         }
 
         // 创建返回给客户端的数据
         $params = [
             'code_url' => $this->qrcodeService->getImageUrl($json['code_url']),
-            'timeStamp' => strval(Carbon::now()->getTimestamp()),
+            'timeStamp' => strval(CarbonImmutable::now()->getTimestamp()),
             'createDate' => date('Y-m-d H:i:s', time()),
             'description' => $description,
             'payOrderId' => $payOrder->getId(),
@@ -141,7 +140,7 @@ class UnifiedOrder
 
     public function createAppOrder(AppOrderParams $appOrderParams): array
     {
-        if (!$this->tradeType) {
+        if (empty($this->tradeType)) {
             throw new \Exception('请设置下单类型');
         }
         // 如果没声明，我们就取第一个支付配置
@@ -166,11 +165,11 @@ class UnifiedOrder
         $payOrder->setTradeNo($appOrderParams->getContractId());
         $payOrder->setAttach($attach);
         $payOrder->setCreateIp($this->requestStack->getCurrentRequest()->getClientIp());
-        if ($appOrderParams->getOpenId()) {
+        if (!empty($appOrderParams->getOpenId())) {
             $payOrder->setOpenId($appOrderParams->getOpenId());
         }
 
-        $startTime = Carbon::now();
+        $startTime = CarbonImmutable::now();
         // 一般是15分钟后过期
         $expireTime = $startTime->clone()->addMinutes(15);
         $payOrder->setStartTime($startTime);
@@ -205,10 +204,10 @@ class UnifiedOrder
             'total_fee' => $payOrder->getTotalFee(),
             'spbill_create_ip' => $this->requestStack->getCurrentRequest()->getClientIp(),
         ];
-        if ($appOrderParams->getOpenId()) {
+        if (!empty($appOrderParams->getOpenId())) {
             $requestJson['openid'] = $appOrderParams->getOpenId();
         }
-        if ($payOrder->getAttach()) {
+        if (!empty($payOrder->getAttach())) {
             $requestJson['attach'] = $payOrder->getAttach();
         }
         $payOrder->setRequestJson(Json::encode($requestJson));
@@ -228,14 +227,14 @@ class UnifiedOrder
             'json' => $json,
         ]);
         $prepayId = ArrayHelper::getValue($json, 'prepay_id');
-        if (!$prepayId) {
+        if (empty($prepayId)) {
             throw new \Exception('获取微信APP支付关键参数出错');
         }
 
         // 创建返回给客户端的数据
         $params = [
             'appId' => $appid,
-            'timeStamp' => strval(Carbon::now()->getTimestamp()),
+            'timeStamp' => strval(CarbonImmutable::now()->getTimestamp()),
             'nonceStr' => $json['nonce_str'],
             'package' => "prepay_id={$prepayId}",
             'signType' => 'MD5',

@@ -19,18 +19,16 @@ class RefundOrderListener
     public function __construct(
         private readonly LoggerInterface $logger,
         private readonly WechatPayBuilder $payBuilder,
-        private readonly RefundOrderRepository $refundOrderRepository,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly EntityManagerInterface $entityManager,
-    ) {
-    }
+    ) {}
 
     /**
      * 保存时，确保有写入一个回调地址
      */
     public function ensureCallbackURL(RefundOrder $refundOrder): void
     {
-        if ($refundOrder->getNotifyUrl()) {
+        if (!empty($refundOrder->getNotifyUrl())) {
             return;
         }
 

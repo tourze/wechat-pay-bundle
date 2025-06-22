@@ -2,7 +2,7 @@
 
 namespace WechatPayBundle\Command;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -22,10 +22,10 @@ use Yiisoft\Json\Json;
  * @see https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_5.shtml
  */
 #[AsCronTask('* * * * *')]
-#[AsCommand(name: 'wechat:pay:check-order-expire', description: '检查订单过期状态')]
+#[AsCommand(name: self::NAME, description: '检查订单过期状态')]
 class PayCheckOrderExpireCommand extends Command
 {
-    public const NAME = 'pay-check-order-expire';
+    public const NAME = 'wechat:pay:check-order-expire';
 
     public function __construct(
         private readonly PayOrderRepository $payOrderRepository,
@@ -42,7 +42,7 @@ class PayCheckOrderExpireCommand extends Command
             ->where('a.status = :status')
             ->andWhere('a.expireTime < :now')
             ->setParameter('status', PayOrderStatus::INIT)
-            ->setParameter('now', Carbon::now());
+            ->setParameter('now', CarbonImmutable::now());
 
         foreach ($qb->getQuery()->getResult() as $row) {
             /** @var PayOrder $row */

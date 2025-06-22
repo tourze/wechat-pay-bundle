@@ -30,7 +30,7 @@ class FundFlowBill implements \Stringable
     #[ORM\JoinColumn(nullable: false)]
     private ?Merchant $merchant = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '账单日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '账单日期'])]
     private ?\DateTimeInterface $billDate = null;
 
     #[ORM\Column(length: 20, enumType: AccountType::class, options: ['comment' => '账单类型'])]

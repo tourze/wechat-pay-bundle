@@ -2,7 +2,7 @@
 
 namespace WechatPayBundle\Command;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Carbon\CarbonPeriod;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,10 +29,10 @@ use Yiisoft\Json\Json;
  */
 #[AsCronTask('0 10 * * *')]
 #[AsCronTask('0 11 * * *')]
-#[AsCommand(name: 'wechat:pay:download-trade-bill', description: '交易账单下载')]
+#[AsCommand(name: self::NAME, description: '交易账单下载')]
 class DownloadTradeBillCommand extends Command
 {
-    public const NAME = 'download-trade-bill';
+    public const NAME = 'wechat:pay:download-trade-bill';
 
     public function __construct(
         private readonly MerchantRepository $merchantRepository,
@@ -48,8 +48,8 @@ class DownloadTradeBillCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // 总是拉最近一周的数据
-        $startDate = Carbon::yesterday()->subWeek();
-        $endDate = Carbon::yesterday()->startOfDay();
+        $startDate = CarbonImmutable::yesterday()->subWeek();
+        $endDate = CarbonImmutable::yesterday()->startOfDay();
         $dateList = CarbonPeriod::between($startDate, $endDate)->toArray();
 
         foreach ($dateList as $date) {
@@ -73,7 +73,7 @@ class DownloadTradeBillCommand extends Command
                 'billType' => $billType,
             ]);
             // 有保存过，跳过
-            if ($tradeBill) {
+            if ($tradeBill !== null) {
                 continue;
             }
 
@@ -97,8 +97,15 @@ class DownloadTradeBillCommand extends Command
 
             // 【下载地址】 供下一步请求账单文件的下载地址，该地址5min内有效。
             $billData = $this->httpClient->request('GET', $tradeBill->getDownloadUrl())->getContent();
-            $key = $this->mountManager->saveContent($billData, 'txt');
-            $tradeBill->setLocalFile($key);
+            // 使用 writeStream 方法保存内容
+            $filename = 'trade_bill_' . $date->format('Y-m-d') . '_' . $billType->value . '_' . uniqid() . '.txt';
+            $stream = fopen('php://memory', 'r+');
+            fwrite($stream, $billData);
+            rewind($stream);
+            $this->mountManager->writeStream($filename, $stream);
+            fclose($stream);
+
+            $tradeBill->setLocalFile($filename);
 
             $this->entityManager->persist($tradeBill);
             $this->entityManager->flush();

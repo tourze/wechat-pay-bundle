@@ -2,7 +2,7 @@
 
 namespace WechatPayBundle\Entity;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -11,9 +11,7 @@ use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\CurdAction;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use WechatPayBundle\Enum\PayOrderStatus;
 use WechatPayBundle\Repository\PayOrderRepository;
 
@@ -31,20 +29,13 @@ use WechatPayBundle\Repository\PayOrderRepository;
 class PayOrder implements \Stringable
 {
     use TimestampableAware;
+    use BlameableAware;
 
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
-
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[ORM\ManyToOne(targetEntity: PayOrder::class)]
     private ?PayOrder $parent = null;
@@ -61,17 +52,14 @@ class PayOrder implements \Stringable
     #[ORM\Column(type: Types::STRING, length: 30, options: ['comment' => '交易类型'])]
     private ?string $tradeType = null;
 
-    /**
-     * 按照微信的规则，下面这个单号在不同商户号之间是允许重复的，但为了减少逻辑，直接整体不可重复吧.
-     */
-    #[ORM\Column(type: Types::STRING, length: 80, unique: true, options: ['comment' => '商户订单号'])]
+    #[ORM\Column(type: Types::STRING, length: 80, unique: true, options: ['comment' => '商户订单号（按照微信的规则，下面这个单号在不同商户号之间是允许重复的，但为了减少逻辑，直接整体不可重复）'])]
     private ?string $tradeNo = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '商品描述'])]
     private ?string $body = null;
 
     #[ORM\Column(type: Types::STRING, length: 10, options: ['comment' => '标价币种'])]
-    private ?string $feeType = 'CNY';
+    private string $feeType = 'CNY';
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '标价金额'])]
     private ?int $totalFee = null;
@@ -79,10 +67,10 @@ class PayOrder implements \Stringable
     #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '终端IP'])]
     private ?string $createIp = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '交易起始时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '交易起始时间'])]
     private ?\DateTimeInterface $startTime = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '交易结束时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '交易结束时间'])]
     private ?\DateTimeInterface $expireTime = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '通知地址'])]
@@ -97,13 +85,13 @@ class PayOrder implements \Stringable
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
     private ?string $remark = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '请求JSON'])]
     private ?string $requestJson = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '响应JSON'])]
     private ?string $responseJson = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '回调时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '回调时间'])]
     private ?\DateTimeInterface $callbackTime = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '回调内容'])]
@@ -115,37 +103,22 @@ class PayOrder implements \Stringable
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '微信支付流水号'])]
     private ?string $transactionId = null;
 
-    /**
-     * 交易状态，枚举值：
-     * SUCCESS：支付成功
-     * REFUND：转入退款
-     * NOTPAY：未支付
-     * CLOSED：已关闭
-     * REVOKED：已撤销（付款码支付）
-     * USERPAYING：用户支付中（付款码支付）
-     * PAYERROR：支付失败(其他原因，如银行返回失败).
-     */
-    #[ORM\Column(type: Types::STRING, length: 32, nullable: true, options: ['comment' => '微信支付状态'])]
+    #[ORM\Column(type: Types::STRING, length: 32, nullable: true, options: ['comment' => '微信支付状态（SUCCESS：支付成功，REFUND：转入退款，NOTPAY：未支付，CLOSED：已关闭，REVOKED：已撤销，USERPAYING：用户支付中，PAYERROR：支付失败）'])]
     private ?string $tradeState = null;
 
     /**
      * @var Collection<RefundOrder>
      */
-    #[CurdAction(label: '退款记录')]
     #[ORM\OneToMany(mappedBy: 'payOrder', targetEntity: RefundOrder::class)]
     private Collection $refundOrders;
 
     #[ORM\Column(length: 1000, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
 
-    /**
-     * 该值有效期为2小时
-     * 这个值会在 PayOrderListener 中调用远程接口生成
-     */
-    #[ORM\Column(length: 64, nullable: true, options: ['comment' => '预支付交易会话标识'])]
+    #[ORM\Column(length: 64, nullable: true, options: ['comment' => '预支付交易会话标识（该值有效期为2小时，在PayOrderListener中调用远程接口生成）'])]
     private ?string $prepayId = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '预支付交易会话过期时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '预支付交易会话过期时间'])]
     private ?\DateTimeInterface $prepayExpireTime = null;
 
     #[CreateIpColumn]
@@ -160,7 +133,7 @@ class PayOrder implements \Stringable
     {
         $this->refundOrders = new ArrayCollection();
 
-        $startTime = Carbon::now();
+        $startTime = CarbonImmutable::now();
         // 一般是15分钟后过期
         $expireTime = $startTime->clone()->addMinutes(15);
         $this->setStartTime($startTime);
@@ -170,30 +143,6 @@ class PayOrder implements \Stringable
     public function getId(): ?string
     {
         return $this->id;
-    }
-
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
     }
 
     public function getRemark(): ?string
@@ -256,7 +205,7 @@ class PayOrder implements \Stringable
         return $this;
     }
 
-    public function getFeeType(): ?string
+    public function getFeeType(): string
     {
         return $this->feeType;
     }

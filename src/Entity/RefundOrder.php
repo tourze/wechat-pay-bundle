@@ -2,8 +2,8 @@
 
 namespace WechatPayBundle\Entity;
 
-use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -13,8 +13,7 @@ use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use WechatPayBundle\Repository\RefundOrderRepository;
 use Yiisoft\Json\Json;
 
@@ -32,20 +31,13 @@ use Yiisoft\Json\Json;
 class RefundOrder implements \Stringable
 {
     use TimestampableAware;
+    use BlameableAware;
 
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
-
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     /**
      * 有支付了，才可能有退款单.
@@ -54,7 +46,7 @@ class RefundOrder implements \Stringable
     #[ORM\ManyToOne(targetEntity: PayOrder::class, inversedBy: 'refundOrders')]
     private ?PayOrder $payOrder = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 50, options: ['comment' => '应用ID'])]
     private ?string $appId = null;
 
     #[ORM\Column(type: Types::STRING, length: 80, nullable: true, options: ['comment' => '退款原因'])]
@@ -75,12 +67,9 @@ class RefundOrder implements \Stringable
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '响应JSON'])]
     private ?string $responseJson = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '回调响应'])]
     private ?string $callbackResponse = null;
 
-    /**
-     * 这个字段，是在微信退款接口成功之后才有的.
-     */
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '微信支付退款单号'])]
     private ?string $refundId = null;
 
@@ -90,7 +79,7 @@ class RefundOrder implements \Stringable
     #[ORM\Column(type: Types::STRING, length: 120, nullable: true, options: ['comment' => '退款入账账户'])]
     private ?string $userReceiveAccount = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '退款成功时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '退款成功时间'])]
     private ?\DateTimeInterface $successTime = null;
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true, options: ['comment' => '退款状态'])]
@@ -115,30 +104,6 @@ class RefundOrder implements \Stringable
     public function getId(): ?string
     {
         return $this->id;
-    }
-
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
     }
 
     public function getPayOrder(): ?PayOrder
@@ -311,7 +276,7 @@ class RefundOrder implements \Stringable
         $this->setRefundId($response['refund_id']);
         $this->setRefundChannel($response['channel']);
         $this->setUserReceiveAccount($response['user_received_account']);
-        $this->setSuccessTime(Carbon::parse($response['success_time']));
+        $this->setSuccessTime(CarbonImmutable::parse($response['success_time']));
         $this->setCreateTime(CarbonImmutable::parse($response['create_time']));
         $this->setStatus($response['status']);
     }

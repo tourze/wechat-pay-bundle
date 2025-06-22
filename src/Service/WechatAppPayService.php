@@ -2,7 +2,7 @@
 
 namespace WechatPayBundle\Service;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use HttpClientBundle\Service\SmartHttpClient;
 use Psr\Log\LoggerInterface;
@@ -12,7 +12,6 @@ use Tourze\XML\XML;
 use WechatPayBundle\Entity\PayOrder;
 use WechatPayBundle\Enum\PayOrderStatus;
 use WechatPayBundle\Repository\MerchantRepository;
-use WechatPayBundle\Repository\PayOrderRepository;
 use WechatPayBundle\Request\AppOrderParams;
 use Yiisoft\Arrays\ArrayHelper;
 use Yiisoft\Json\Json;
@@ -24,11 +23,9 @@ class WechatAppPayService
         private readonly LoggerInterface $logger,
         private readonly SmartHttpClient $httpClient,
         private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly PayOrderRepository $payOrderRepository,
         private readonly RequestStack $requestStack,
         private readonly EntityManagerInterface $entityManager,
-    ) {
-    }
+    ) {}
 
     public function createAppOrder(AppOrderParams $appOrderParams)
     {
@@ -55,7 +52,7 @@ class WechatAppPayService
         $payOrder->setAttach($attach);
         $payOrder->setCreateIp($this->requestStack->getCurrentRequest()->getClientIp());
 
-        $startTime = Carbon::now();
+        $startTime = CarbonImmutable::now();
         // 一般是15分钟后过期
         $expireTime = $startTime->clone()->addMinutes(15);
         $payOrder->setStartTime($startTime);
@@ -90,7 +87,7 @@ class WechatAppPayService
             'total_fee' => $payOrder->getTotalFee(),
             'spbill_create_ip' => $this->requestStack->getCurrentRequest()->getClientIp(),
         ];
-        if ($payOrder->getAttach()) {
+        if (!empty($payOrder->getAttach())) {
             $requestJson['attach'] = $payOrder->getAttach();
         }
         $payOrder->setRequestJson(Json::encode($requestJson));
@@ -110,7 +107,7 @@ class WechatAppPayService
             'json' => $json,
         ]);
         $prepayId = ArrayHelper::getValue($json, 'prepay_id');
-        if (!$prepayId) {
+        if (empty($prepayId)) {
             throw new \Exception('获取微信APP支付关键参数出错');
         }
 
@@ -157,9 +154,7 @@ class WechatAppPayService
         return strtoupper((string) call_user_func_array($encryptMethod, [urldecode(http_build_query($attributes))]));
     }
 
-    public function notify()
-    {
-    }
+    public function notify() {}
 
     public function getTradeOrderDetail(string $tradeNo): array
     {

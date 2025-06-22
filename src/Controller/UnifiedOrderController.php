@@ -2,7 +2,7 @@
 
 namespace WechatPayBundle\Controller;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,14 +19,13 @@ use WechatPayBundle\Repository\MerchantRepository;
 use WechatPayBundle\Repository\PayOrderRepository;
 use Yiisoft\Json\Json;
 
-#[Route(path: '/wechat-payment/unified-order')]
 class UnifiedOrderController extends AbstractController
 {
     /**
      * @see https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_5.shtml
      */
-    #[Route(path: '/pay/{traderNo}', name: 'wechat_app_unified_order_pay_callback', methods: ['POST'])]
-    public function payCallback(
+    #[Route(path: '/wechat-payment/unified-order/pay/{traderNo}', name: 'wechat_app_unified_order_pay_callback', methods: ['POST'])]
+    public function __invoke(
         string $traderNo,
         LoggerInterface $logger,
         EventDispatcherInterface $eventDispatcher,
@@ -47,7 +46,7 @@ class UnifiedOrderController extends AbstractController
         }
         try {
             $payOrder = $payOrderRepository->findOneBy(['tradeNo' => $traderNo]);
-            if (!$payOrder) {
+            if ($payOrder === null) {
                 return new Response(XML::build([
                     'return_code' => 'FAIL',
                     'return_msg' => '订单不存在',
@@ -70,7 +69,7 @@ class UnifiedOrderController extends AbstractController
 
             // 将回调信息存起来
             $payOrder->setCallbackResponse(Json::encode($attributes));
-            $payOrder->setCallbackTime(Carbon::now());
+            $payOrder->setCallbackTime(CarbonImmutable::now());
             if (isset($attributes['transaction_id'])) {
                 $payOrder->setTransactionId($attributes['transaction_id']);
             }
@@ -79,7 +78,7 @@ class UnifiedOrderController extends AbstractController
             $merchant = $merchantRepository->findOneBy([
                 'mchId' => $attributes['mch_id'],
             ]);
-            if (!$merchant) {
+            if ($merchant === null) {
                 return new Response(XML::build([
                     'return_code' => 'FAIL',
                     'return_msg' => '商户号错误',

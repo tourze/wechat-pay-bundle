@@ -2,6 +2,7 @@
 
 namespace WechatPayBundle\Command;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Carbon\CarbonPeriod;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,8 +47,8 @@ class DownloadFundFlowBillCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // 总是拉最近一周的数据
-        $startDate = Carbon::yesterday()->subWeek();
-        $endDate = Carbon::yesterday()->startOfDay();
+        $startDate = CarbonImmutable::yesterday()->subWeek();
+        $endDate = CarbonImmutable::yesterday()->startOfDay();
         $dateList = CarbonPeriod::between($startDate, $endDate)->toArray();
 
         foreach ($dateList as $date) {
@@ -71,7 +72,7 @@ class DownloadFundFlowBillCommand extends Command
                 'accountType' => $accountType,
             ]);
             // 有保存过，跳过
-            if ($fundFlowBill) {
+            if ($fundFlowBill !== null) {
                 continue;
             }
 
@@ -95,8 +96,15 @@ class DownloadFundFlowBillCommand extends Command
 
             // 【下载地址】 供下一步请求账单文件的下载地址，该地址5min内有效。
             $billData = $this->httpClient->request('GET', $fundFlowBill->getDownloadUrl())->getContent();
-            $key = $this->mountManager->saveContent($billData, 'txt');
-            $fundFlowBill->setLocalFile($key);
+            // 使用 writeStream 方法保存内容
+            $filename = 'bill_' . $date->format('Y-m-d') . '_' . $accountType->value . '_' . uniqid() . '.txt';
+            $stream = fopen('php://memory', 'r+');
+            fwrite($stream, $billData);
+            rewind($stream);
+            $this->mountManager->writeStream($filename, $stream);
+            fclose($stream);
+
+            $fundFlowBill->setLocalFile($filename);
 
             $this->entityManager->persist($fundFlowBill);
             $this->entityManager->flush();

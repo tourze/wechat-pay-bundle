@@ -14,7 +14,6 @@ use WechatPayBundle\Entity\Merchant;
 use WechatPayBundle\Entity\PayOrder;
 use WechatPayBundle\Enum\PayOrderStatus;
 use WechatPayBundle\Repository\MerchantRepository;
-use WechatPayBundle\Repository\PayOrderRepository;
 use WechatPayBundle\Request\AppOrderParams;
 use WechatPayBundle\Service\WechatAppPayService;
 
@@ -25,7 +24,7 @@ class WechatAppPayServiceTest extends TestCase
     private MockObject $logger;
     private MockObject $httpClient;
     private MockObject $urlGenerator;
-    private MockObject $payOrderRepository;
+
     private MockObject $requestStack;
     private MockObject $entityManager;
     private Request $request;
@@ -33,24 +32,23 @@ class WechatAppPayServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->merchantRepository = $this->createMock(MerchantRepository::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->httpClient = $this->createMock(SmartHttpClient::class);
         $this->urlGenerator = $this->createMock(UrlGeneratorInterface::class);
-        $this->payOrderRepository = $this->createMock(PayOrderRepository::class);
+
         $this->requestStack = $this->createMock(RequestStack::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        
+
         $this->request = $this->createMock(Request::class);
         $this->requestStack->method('getCurrentRequest')->willReturn($this->request);
-        
+
         $this->service = new WechatAppPayService(
             $this->merchantRepository,
             $this->logger,
             $this->httpClient,
             $this->urlGenerator,
-            $this->payOrderRepository,
             $this->requestStack,
             $this->entityManager
         );
@@ -65,7 +63,7 @@ class WechatAppPayServiceTest extends TestCase
         $merchant = new Merchant();
         $merchant->setMchId('1234567890');
         $merchant->setPemKey('test_key');
-        
+
         // 准备参数
         $params = new AppOrderParams();
         $params->setMchId('1234567890');
@@ -73,27 +71,27 @@ class WechatAppPayServiceTest extends TestCase
         $params->setContractId('order_123456');
         $params->setDescription('测试订单');
         $params->setMoney(100); // 1元
-        
+
         // Mock MerchantRepository 返回
         $this->merchantRepository->method('findOneBy')
             ->willReturn($merchant);
-        
+
         // Mock URL生成器返回
         $this->urlGenerator->method('generate')
             ->willReturn('https://example.com/callback');
-        
+
         // Mock 客户端IP
         $this->request->method('getClientIp')
             ->willReturn('127.0.0.1');
-        
+
         // Mock HTTP响应返回内容
         $httpResponse = $this->createMock(\Symfony\Contracts\HttpClient\ResponseInterface::class);
         $httpResponse->method('getContent')
             ->willReturn('<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg><prepay_id><![CDATA[wx123456789]]></prepay_id><mch_id><![CDATA[1234567890]]></mch_id><nonce_str><![CDATA[abcdef123456]]></nonce_str></xml>');
-        
+
         $this->httpClient->method('request')
             ->willReturn($httpResponse);
-        
+
         // 由于我们需要测试实体持久化，但不想实际写入数据库
         $this->entityManager->expects($this->once())
             ->method('persist')
@@ -105,10 +103,10 @@ class WechatAppPayServiceTest extends TestCase
                 $this->assertEquals('APP', $payOrder->getTradeType());
                 return true;
             }));
-        
+
         // 执行测试
         $result = $this->service->createAppOrder($params);
-        
+
         // 验证结果
         $this->assertArrayHasKey('appid', $result);
         $this->assertArrayHasKey('partnerid', $result);
@@ -134,39 +132,39 @@ class WechatAppPayServiceTest extends TestCase
         $merchant = new Merchant();
         $merchant->setMchId('default_merchant');
         $merchant->setPemKey('test_key');
-        
+
         // 准备参数，不设置商户ID
         $params = new AppOrderParams();
         $params->setAppId('wxAppId12345');
         $params->setContractId('order_123456');
         $params->setDescription('测试订单');
         $params->setMoney(100);
-        
+
         // Mock MerchantRepository 返回
         $this->merchantRepository->expects($this->once())
             ->method('findOneBy')
             ->with([], ['id' => 'DESC'])
             ->willReturn($merchant);
-        
+
         // Mock URL生成器返回
         $this->urlGenerator->method('generate')
             ->willReturn('https://example.com/callback');
-        
+
         // Mock 客户端IP
         $this->request->method('getClientIp')
             ->willReturn('127.0.0.1');
-        
+
         // Mock HTTP响应返回
         $httpResponse = $this->createMock(\Symfony\Contracts\HttpClient\ResponseInterface::class);
         $httpResponse->method('getContent')
             ->willReturn('<xml><return_code><![CDATA[SUCCESS]]></return_code><prepay_id><![CDATA[wx123456789]]></prepay_id><mch_id><![CDATA[default_merchant]]></mch_id><nonce_str><![CDATA[abcdef123456]]></nonce_str></xml>');
-        
+
         $this->httpClient->method('request')
             ->willReturn($httpResponse);
-        
+
         // 执行测试
         $result = $this->service->createAppOrder($params);
-        
+
         // 验证结果
         $this->assertEquals('default_merchant', $result['partnerid']);
     }
@@ -187,18 +185,18 @@ class WechatAppPayServiceTest extends TestCase
             'notify_url' => 'https://example.com/notify',
             'trade_type' => 'APP',
         ];
-        
+
         $key = 'test_key_123456';
-        
+
         // 计算预期签名
         $expectedSignData = $attributes;
         ksort($expectedSignData);
         $expectedSignData['key'] = $key;
         $expectedSign = strtoupper(md5(urldecode(http_build_query($expectedSignData))));
-        
+
         // 实际生成签名
         $sign = $this->service->generateSign($attributes, $key);
-        
+
         // 验证
         $this->assertEquals($expectedSign, $sign);
     }
@@ -212,7 +210,7 @@ class WechatAppPayServiceTest extends TestCase
         $result = $this->service->getTradeOrderDetail('order123456');
         $this->assertEmpty($result);
     }
-    
+
     /**
      * 测试通知方法
      */
@@ -222,7 +220,7 @@ class WechatAppPayServiceTest extends TestCase
         $this->service->notify();
         $this->assertTrue(true); // 表示测试通过
     }
-    
+
     /**
      * 测试签名生成输入参数验证
      */
@@ -232,17 +230,17 @@ class WechatAppPayServiceTest extends TestCase
             'appid' => 'wx123456',
             'mch_id' => '1234567890',
         ];
-        
+
         $key = 'test_key_123456';
-        
+
         // 使用sha1而不是默认的md5
         $expectedSignData = $attributes;
         ksort($expectedSignData);
         $expectedSignData['key'] = $key;
         $expectedSign = strtoupper(sha1(urldecode(http_build_query($expectedSignData))));
-        
+
         $sign = $this->service->generateSign($attributes, $key, 'sha1');
-        
+
         $this->assertEquals($expectedSign, $sign);
     }
 
@@ -255,7 +253,7 @@ class WechatAppPayServiceTest extends TestCase
         $merchant = new Merchant();
         $merchant->setMchId('1234567890');
         $merchant->setPemKey('test_key');
-        
+
         // 准备参数
         $params = new AppOrderParams();
         $params->setMchId('1234567890');
@@ -263,31 +261,31 @@ class WechatAppPayServiceTest extends TestCase
         $params->setContractId('order_123456');
         $params->setDescription('测试订单');
         $params->setMoney(100);
-        
+
         // Mock MerchantRepository 返回
         $this->merchantRepository->method('findOneBy')
             ->willReturn($merchant);
-        
+
         // Mock URL生成器返回
         $this->urlGenerator->method('generate')
             ->willReturn('https://example.com/callback');
-        
+
         // Mock 客户端IP
         $this->request->method('getClientIp')
             ->willReturn('127.0.0.1');
-        
+
         // Mock HTTP响应返回内容 - 没有prepay_id
         $httpResponse = $this->createMock(\Symfony\Contracts\HttpClient\ResponseInterface::class);
         $httpResponse->method('getContent')
             ->willReturn('<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[参数错误]]></return_msg></xml>');
-        
+
         $this->httpClient->method('request')
             ->willReturn($httpResponse);
-        
+
         // 验证抛出异常
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('获取微信APP支付关键参数出错');
-        
+
         $this->service->createAppOrder($params);
     }
-} 
+}
