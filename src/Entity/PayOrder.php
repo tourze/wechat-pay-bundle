@@ -511,6 +511,29 @@ class PayOrder implements \Stringable
         return $this;
     }
 
+    public function setResponseData(?string $responseData): self
+    {
+        $this->callbackResponse = $responseData;
+
+        return $this;
+    }
+
+    public function setResponseSerial(?string $responseSerial): self
+    {
+        // TODO: 可能需要添加一个新字段来存储响应序列号
+        // 暂时先存储在 remark 中或忽略
+        return $this;
+    }
+
+    public function setSuccessTime(?string $successTime): self
+    {
+        if (!empty($successTime)) {
+            $this->callbackTime = CarbonImmutable::parse($successTime);
+        }
+
+        return $this;
+    }
+
     public function __toString(): string
     {
         return (string) $this->getId();

@@ -149,4 +149,9 @@ class Merchant implements \Stringable
 
         return $this;
     }
+
+    public function getKey(): ?string
+    {
+        return $this->getApiKey();
+    }
 }
