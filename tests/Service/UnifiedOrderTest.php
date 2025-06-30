@@ -15,6 +15,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 use WechatPayBundle\Entity\Merchant;
 use WechatPayBundle\Entity\PayOrder;
 use WechatPayBundle\Enum\PayOrderStatus;
+use WechatPayBundle\Exception\InvalidTradeTypeException;
+use WechatPayBundle\Exception\PaymentParameterException;
 use WechatPayBundle\Repository\MerchantRepository;
 use WechatPayBundle\Request\AppOrderParams;
 use WechatPayBundle\Service\UnifiedOrder;
@@ -46,7 +48,7 @@ class UnifiedOrderTest extends TestCase
         $this->request = $this->createMock(Request::class);
         $this->requestStack->method('getCurrentRequest')->willReturn($this->request);
         
-        $this->unifiedOrder = new class(
+        $this->unifiedOrder = new UnifiedOrder(
             $this->merchantRepository,
             $this->logger,
             $this->httpClient,
@@ -54,13 +56,7 @@ class UnifiedOrderTest extends TestCase
             $this->requestStack,
             $this->qrcodeService,
             $this->entityManager
-        ) extends UnifiedOrder {
-            // 使用匿名类扩展 UnifiedOrder，允许我们设置 protected 的 tradeType 属性
-            public function setTradeType(string $tradeType): void
-            {
-                $this->tradeType = $tradeType;
-            }
-        };
+        );
         
         // 设置默认的 tradeType
         $this->unifiedOrder->setTradeType('APP');
@@ -152,7 +148,7 @@ class UnifiedOrderTest extends TestCase
         $params->setMoney(100);
         
         // 验证抛出异常
-        $this->expectException(\Exception::class);
+        $this->expectException(InvalidTradeTypeException::class);
         $this->expectExceptionMessage('请设置下单类型');
         
         $this->unifiedOrder->createH5Order($params);
@@ -283,7 +279,7 @@ class UnifiedOrderTest extends TestCase
             ->willReturn($httpResponse);
         
         // 验证抛出异常
-        $this->expectException(\Exception::class);
+        $this->expectException(PaymentParameterException::class);
         $this->expectExceptionMessage('获取微信APP支付关键参数出错');
         
         $this->unifiedOrder->createAppOrder($params);

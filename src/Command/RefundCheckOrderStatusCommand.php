@@ -19,7 +19,7 @@ use Yiisoft\Json\Json;
  *
  * @see https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_1_10.shtml
  */
-#[AsCronTask('* * * * *')]
+#[AsCronTask(expression: '* * * * *')]
 #[AsCommand(name: self::NAME, description: '检查退款订单状态')]
 class RefundCheckOrderStatusCommand extends Command
 {

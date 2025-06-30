@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Tourze\XML\XML;
 use WechatPayBundle\Entity\PayOrder;
 use WechatPayBundle\Enum\PayOrderStatus;
+use WechatPayBundle\Exception\PaymentParameterException;
 use WechatPayBundle\Repository\MerchantRepository;
 use WechatPayBundle\Request\AppOrderParams;
 use Yiisoft\Arrays\ArrayHelper;
@@ -108,7 +109,7 @@ class WechatAppPayService
         ]);
         $prepayId = ArrayHelper::getValue($json, 'prepay_id');
         if (empty($prepayId)) {
-            throw new \Exception('获取微信APP支付关键参数出错');
+            throw new PaymentParameterException('获取微信APP支付关键参数出错');
         }
 
         // {

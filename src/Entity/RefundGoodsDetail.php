@@ -4,7 +4,7 @@ namespace WechatPayBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use WechatPayBundle\Repository\RefundGoodsDetailRepository;
@@ -13,14 +13,9 @@ use WechatPayBundle\Repository\RefundGoodsDetailRepository;
 #[ORM\Table(name: 'wechat_refund_goods_detail', options: ['comment' => '退款订单-商品明细'])]
 class RefundGoodsDetail implements \Stringable
 {
+    use SnowflakeKeyAware;
     use TimestampableAware;
     use BlameableAware;
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'goodsDetails')]
     #[ORM\JoinColumn(nullable: false)]
@@ -44,10 +39,6 @@ class RefundGoodsDetail implements \Stringable
     #[ORM\Column(options: ['comment' => '商品退货数量'])]
     private ?int $refundQuantity = null;
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getRefundOrder(): ?RefundOrder
     {

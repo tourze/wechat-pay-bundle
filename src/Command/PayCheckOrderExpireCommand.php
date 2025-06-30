@@ -21,7 +21,7 @@ use Yiisoft\Json\Json;
  *
  * @see https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_5.shtml
  */
-#[AsCronTask('* * * * *')]
+#[AsCronTask(expression: '* * * * *')]
 #[AsCommand(name: self::NAME, description: '检查订单过期状态')]
 class PayCheckOrderExpireCommand extends Command
 {

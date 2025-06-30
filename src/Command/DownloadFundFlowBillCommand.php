@@ -26,8 +26,8 @@ use Yiisoft\Json\Json;
  *
  * @see https://pay.weixin.qq.com/docs/merchant/apis/mini-program-payment/get-fund-bill.html
  */
-#[AsCronTask('0 10 * * *')]
-#[AsCronTask('0 11 * * *')]
+#[AsCronTask(expression: '0 10 * * *')]
+#[AsCronTask(expression: '0 11 * * *')]
 #[AsCommand(name: self::NAME, description: '资金账单下载')]
 class DownloadFundFlowBillCommand extends Command
 {

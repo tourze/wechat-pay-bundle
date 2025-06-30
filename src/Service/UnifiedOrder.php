@@ -12,6 +12,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Tourze\XML\XML;
 use WechatPayBundle\Entity\PayOrder;
 use WechatPayBundle\Enum\PayOrderStatus;
+use WechatPayBundle\Exception\InvalidTradeTypeException;
+use WechatPayBundle\Exception\PaymentParameterException;
 use WechatPayBundle\Repository\MerchantRepository;
 use WechatPayBundle\Request\AppOrderParams;
 use Yiisoft\Arrays\ArrayHelper;
@@ -20,6 +22,11 @@ use Yiisoft\Json\Json;
 class UnifiedOrder
 {
     protected string $tradeType = '';
+
+    public function setTradeType(string $tradeType): void
+    {
+        $this->tradeType = $tradeType;
+    }
 
     public function __construct(
         private readonly MerchantRepository $merchantRepository,
@@ -34,7 +41,7 @@ class UnifiedOrder
     public function createH5Order(AppOrderParams $appOrderParams): array
     {
         if (empty($this->tradeType)) {
-            throw new \Exception('请设置下单类型');
+            throw new InvalidTradeTypeException('请设置下单类型');
         }
 
         $merchant = $this->merchantRepository->findOneBy([
@@ -117,7 +124,7 @@ class UnifiedOrder
         ]);
         $prepayId = ArrayHelper::getValue($json, 'prepay_id');
         if (empty($prepayId)) {
-            throw new \Exception('获取微信APP支付关键参数出错');
+            throw new PaymentParameterException('获取微信APP支付关键参数出错');
         }
 
         // 创建返回给客户端的数据
@@ -141,7 +148,7 @@ class UnifiedOrder
     public function createAppOrder(AppOrderParams $appOrderParams): array
     {
         if (empty($this->tradeType)) {
-            throw new \Exception('请设置下单类型');
+            throw new InvalidTradeTypeException('请设置下单类型');
         }
         // 如果没声明，我们就取第一个支付配置
         if (empty($appOrderParams->getMchId())) {
@@ -228,7 +235,7 @@ class UnifiedOrder
         ]);
         $prepayId = ArrayHelper::getValue($json, 'prepay_id');
         if (empty($prepayId)) {
-            throw new \Exception('获取微信APP支付关键参数出错');
+            throw new PaymentParameterException('获取微信APP支付关键参数出错');
         }
 
         // 创建返回给客户端的数据

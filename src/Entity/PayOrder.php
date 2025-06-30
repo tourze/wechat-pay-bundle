@@ -9,7 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use WechatPayBundle\Enum\PayOrderStatus;
@@ -28,14 +28,9 @@ use WechatPayBundle\Repository\PayOrderRepository;
 #[ORM\Table(name: 'wechat_pay_order', options: ['comment' => '微信支付单'])]
 class PayOrder implements \Stringable
 {
+    use SnowflakeKeyAware;
     use TimestampableAware;
     use BlameableAware;
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[ORM\ManyToOne(targetEntity: PayOrder::class)]
     private ?PayOrder $parent = null;
@@ -140,10 +135,6 @@ class PayOrder implements \Stringable
         $this->setExpireTime($expireTime);
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getRemark(): ?string
     {
