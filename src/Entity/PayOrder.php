@@ -7,8 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -31,6 +31,7 @@ class PayOrder implements \Stringable
     use SnowflakeKeyAware;
     use TimestampableAware;
     use BlameableAware;
+    use IpTraceableAware;
 
     #[ORM\ManyToOne(targetEntity: PayOrder::class)]
     private ?PayOrder $parent = null;
@@ -39,90 +40,114 @@ class PayOrder implements \Stringable
     private ?Merchant $merchant = null;
 
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => 'AppID'])]
+    #[Assert\NotBlank(message: 'AppID不能为空')]
+    #[Assert\Length(max: 64, maxMessage: 'AppID长度不能超过 {{ limit }} 个字符')]
     private ?string $appId = null;
 
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '商户ID'])]
+    #[Assert\NotBlank(message: '商户ID不能为空')]
+    #[Assert\Length(max: 64, maxMessage: '商户ID长度不能超过 {{ limit }} 个字符')]
     private ?string $mchId = null;
 
     #[ORM\Column(type: Types::STRING, length: 30, options: ['comment' => '交易类型'])]
+    #[Assert\NotBlank(message: '交易类型不能为空')]
+    #[Assert\Length(max: 30, maxMessage: '交易类型长度不能超过 {{ limit }} 个字符')]
     private ?string $tradeType = null;
 
     #[ORM\Column(type: Types::STRING, length: 80, unique: true, options: ['comment' => '商户订单号（按照微信的规则，下面这个单号在不同商户号之间是允许重复的，但为了减少逻辑，直接整体不可重复）'])]
+    #[Assert\NotBlank(message: '商户订单号不能为空')]
+    #[Assert\Length(max: 80, maxMessage: '商户订单号长度不能超过 {{ limit }} 个字符')]
     private ?string $tradeNo = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '商品描述'])]
+    #[Assert\NotBlank(message: '商品描述不能为空')]
+    #[Assert\Length(max: 255, maxMessage: '商品描述长度不能超过 {{ limit }} 个字符')]
     private ?string $body = null;
 
     #[ORM\Column(type: Types::STRING, length: 10, options: ['comment' => '标价币种'])]
+    #[Assert\NotBlank(message: '标价币种不能为空')]
+    #[Assert\Length(max: 10, maxMessage: '标价币种长度不能超过 {{ limit }} 个字符')]
     private string $feeType = 'CNY';
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '标价金额'])]
+    #[Assert\NotNull(message: '标价金额不能为空')]
+    #[Assert\PositiveOrZero(message: '标价金额必须大于等于0')]
     private ?int $totalFee = null;
 
-    #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '终端IP'])]
-    private ?string $createIp = null;
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '交易起始时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class, message: '交易起始时间必须是有效的日期时间')]
     private ?\DateTimeInterface $startTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '交易结束时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class, message: '交易结束时间必须是有效的日期时间')]
     private ?\DateTimeInterface $expireTime = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '通知地址'])]
+    #[Assert\NotBlank(message: '通知地址不能为空')]
+    #[Assert\Url(message: '通知地址必须是有效的URL')]
+    #[Assert\Length(max: 255, maxMessage: '通知地址长度不能超过 {{ limit }} 个字符')]
     private ?string $notifyUrl = null;
 
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '用户标识'])]
+    #[Assert\Length(max: 128, maxMessage: '用户标识长度不能超过 {{ limit }} 个字符')]
     private ?string $openId = null;
 
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '附加数据'])]
+    #[Assert\Length(max: 128, maxMessage: '附加数据长度不能超过 {{ limit }} 个字符')]
     private ?string $attach = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
+    #[Assert\Length(max: 100, maxMessage: '备注长度不能超过 {{ limit }} 个字符')]
     private ?string $remark = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '请求JSON'])]
+    #[Assert\Json(message: '请求JSON必须是有效的JSON格式')]
+    #[Assert\Length(max: 65535, maxMessage: '请求JSON内容过长')]
     private ?string $requestJson = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '响应JSON'])]
+    #[Assert\Json(message: '响应JSON必须是有效的JSON格式')]
+    #[Assert\Length(max: 65535, maxMessage: '响应JSON内容过长')]
     private ?string $responseJson = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '回调时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class, message: '回调时间必须是有效的日期时间')]
     private ?\DateTimeInterface $callbackTime = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '回调内容'])]
+    #[Assert\Json(message: '回调内容必须是有效的JSON格式')]
+    #[Assert\Length(max: 65535, maxMessage: '回调内容过长')]
     private ?string $callbackResponse = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, enumType: PayOrderStatus::class, options: ['default' => 'init', 'comment' => '状态'])]
+    #[Assert\Choice(callback: [PayOrderStatus::class, 'cases'], message: '无效的支付订单状态')]
     private PayOrderStatus $status;
 
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '微信支付流水号'])]
+    #[Assert\Length(max: 128, maxMessage: '微信支付流水号长度不能超过 {{ limit }} 个字符')]
     private ?string $transactionId = null;
 
     #[ORM\Column(type: Types::STRING, length: 32, nullable: true, options: ['comment' => '微信支付状态（SUCCESS：支付成功，REFUND：转入退款，NOTPAY：未支付，CLOSED：已关闭，REVOKED：已撤销，USERPAYING：用户支付中，PAYERROR：支付失败）'])]
+    #[Assert\Length(max: 32, maxMessage: '微信支付状态长度不能超过 {{ limit }} 个字符')]
     private ?string $tradeState = null;
 
     /**
-     * @var Collection<RefundOrder>
+     * @var Collection<int, RefundOrder>
      */
     #[ORM\OneToMany(mappedBy: 'payOrder', targetEntity: RefundOrder::class)]
     private Collection $refundOrders;
 
     #[ORM\Column(length: 1000, nullable: true, options: ['comment' => '描述'])]
+    #[Assert\Length(max: 1000, maxMessage: '描述长度不能超过 {{ limit }} 个字符')]
     private ?string $description = null;
 
     #[ORM\Column(length: 64, nullable: true, options: ['comment' => '预支付交易会话标识（该值有效期为2小时，在PayOrderListener中调用远程接口生成）'])]
+    #[Assert\Length(max: 64, maxMessage: '预支付交易会话标识长度不能超过 {{ limit }} 个字符')]
     private ?string $prepayId = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '预支付交易会话过期时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class, message: '预支付交易会话过期时间必须是有效的日期时间')]
     private ?\DateTimeInterface $prepayExpireTime = null;
-
-    #[CreateIpColumn]
-    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '创建者IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '更新者IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __construct()
     {
@@ -135,17 +160,14 @@ class PayOrder implements \Stringable
         $this->setExpireTime($expireTime);
     }
 
-
     public function getRemark(): ?string
     {
         return $this->remark;
     }
 
-    public function setRemark(?string $remark): self
+    public function setRemark(?string $remark): void
     {
         $this->remark = $remark;
-
-        return $this;
     }
 
     public function getAppId(): ?string
@@ -153,11 +175,9 @@ class PayOrder implements \Stringable
         return $this->appId;
     }
 
-    public function setAppId(string $appId): self
+    public function setAppId(string $appId): void
     {
         $this->appId = $appId;
-
-        return $this;
     }
 
     public function getMchId(): ?string
@@ -165,11 +185,9 @@ class PayOrder implements \Stringable
         return $this->mchId;
     }
 
-    public function setMchId(string $mchId): self
+    public function setMchId(string $mchId): void
     {
         $this->mchId = $mchId;
-
-        return $this;
     }
 
     public function getBody(): ?string
@@ -177,11 +195,9 @@ class PayOrder implements \Stringable
         return $this->body;
     }
 
-    public function setBody(string $body): self
+    public function setBody(string $body): void
     {
         $this->body = $body;
-
-        return $this;
     }
 
     public function getTradeNo(): ?string
@@ -189,11 +205,9 @@ class PayOrder implements \Stringable
         return $this->tradeNo;
     }
 
-    public function setTradeNo(string $tradeNo): self
+    public function setTradeNo(string $tradeNo): void
     {
         $this->tradeNo = $tradeNo;
-
-        return $this;
     }
 
     public function getFeeType(): string
@@ -201,11 +215,9 @@ class PayOrder implements \Stringable
         return $this->feeType;
     }
 
-    public function setFeeType(string $feeType): self
+    public function setFeeType(string $feeType): void
     {
         $this->feeType = $feeType;
-
-        return $this;
     }
 
     public function getTotalFee(): ?int
@@ -213,23 +225,9 @@ class PayOrder implements \Stringable
         return $this->totalFee;
     }
 
-    public function setTotalFee(int $totalFee): self
+    public function setTotalFee(int $totalFee): void
     {
         $this->totalFee = $totalFee;
-
-        return $this;
-    }
-
-    public function getCreateIp(): ?string
-    {
-        return $this->createIp;
-    }
-
-    public function setCreateIp(string $createIp): self
-    {
-        $this->createIp = $createIp;
-
-        return $this;
     }
 
     public function getStartTime(): ?\DateTimeInterface
@@ -237,11 +235,9 @@ class PayOrder implements \Stringable
         return $this->startTime;
     }
 
-    public function setStartTime(?\DateTimeInterface $startTime): self
+    public function setStartTime(?\DateTimeInterface $startTime): void
     {
         $this->startTime = $startTime;
-
-        return $this;
     }
 
     public function getExpireTime(): ?\DateTimeInterface
@@ -249,11 +245,9 @@ class PayOrder implements \Stringable
         return $this->expireTime;
     }
 
-    public function setExpireTime(?\DateTimeInterface $expireTime): self
+    public function setExpireTime(?\DateTimeInterface $expireTime): void
     {
         $this->expireTime = $expireTime;
-
-        return $this;
     }
 
     public function getNotifyUrl(): ?string
@@ -261,11 +255,9 @@ class PayOrder implements \Stringable
         return $this->notifyUrl;
     }
 
-    public function setNotifyUrl(string $notifyUrl): self
+    public function setNotifyUrl(string $notifyUrl): void
     {
         $this->notifyUrl = $notifyUrl;
-
-        return $this;
     }
 
     public function getTradeType(): ?string
@@ -273,11 +265,9 @@ class PayOrder implements \Stringable
         return $this->tradeType;
     }
 
-    public function setTradeType(string $tradeType): self
+    public function setTradeType(string $tradeType): void
     {
         $this->tradeType = $tradeType;
-
-        return $this;
     }
 
     public function getOpenId(): ?string
@@ -285,11 +275,9 @@ class PayOrder implements \Stringable
         return $this->openId;
     }
 
-    public function setOpenId(?string $openId): self
+    public function setOpenId(?string $openId): void
     {
         $this->openId = $openId;
-
-        return $this;
     }
 
     public function getAttach(): ?string
@@ -297,11 +285,9 @@ class PayOrder implements \Stringable
         return $this->attach;
     }
 
-    public function setAttach(?string $attach): self
+    public function setAttach(?string $attach): void
     {
         $this->attach = $attach;
-
-        return $this;
     }
 
     public function getRequestJson(): ?string
@@ -309,11 +295,9 @@ class PayOrder implements \Stringable
         return $this->requestJson;
     }
 
-    public function setRequestJson(?string $requestJson): self
+    public function setRequestJson(?string $requestJson): void
     {
         $this->requestJson = $requestJson;
-
-        return $this;
     }
 
     public function getResponseJson(): ?string
@@ -321,11 +305,9 @@ class PayOrder implements \Stringable
         return $this->responseJson;
     }
 
-    public function setResponseJson(?string $responseJson): self
+    public function setResponseJson(?string $responseJson): void
     {
         $this->responseJson = $responseJson;
-
-        return $this;
     }
 
     public function getMerchant(): ?Merchant
@@ -333,11 +315,9 @@ class PayOrder implements \Stringable
         return $this->merchant;
     }
 
-    public function setMerchant(?Merchant $merchant): self
+    public function setMerchant(?Merchant $merchant): void
     {
         $this->merchant = $merchant;
-
-        return $this;
     }
 
     public function getCallbackTime(): ?\DateTimeInterface
@@ -345,11 +325,9 @@ class PayOrder implements \Stringable
         return $this->callbackTime;
     }
 
-    public function setCallbackTime(?\DateTimeInterface $callbackTime): self
+    public function setCallbackTime(?\DateTimeInterface $callbackTime): void
     {
         $this->callbackTime = $callbackTime;
-
-        return $this;
     }
 
     public function getStatus(): PayOrderStatus
@@ -357,11 +335,9 @@ class PayOrder implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(PayOrderStatus $status): self
+    public function setStatus(PayOrderStatus $status): void
     {
         $this->status = $status;
-
-        return $this;
     }
 
     public function getCallbackResponse(): ?string
@@ -369,11 +345,9 @@ class PayOrder implements \Stringable
         return $this->callbackResponse;
     }
 
-    public function setCallbackResponse(?string $callbackResponse): self
+    public function setCallbackResponse(?string $callbackResponse): void
     {
         $this->callbackResponse = $callbackResponse;
-
-        return $this;
     }
 
     public function getTransactionId(): ?string
@@ -381,11 +355,9 @@ class PayOrder implements \Stringable
         return $this->transactionId;
     }
 
-    public function setTransactionId(?string $transactionId): self
+    public function setTransactionId(?string $transactionId): void
     {
         $this->transactionId = $transactionId;
-
-        return $this;
     }
 
     public function getTradeState(): ?string
@@ -393,11 +365,9 @@ class PayOrder implements \Stringable
         return $this->tradeState;
     }
 
-    public function setTradeState(?string $tradeState): self
+    public function setTradeState(?string $tradeState): void
     {
         $this->tradeState = $tradeState;
-
-        return $this;
     }
 
     /**
@@ -408,17 +378,15 @@ class PayOrder implements \Stringable
         return $this->refundOrders;
     }
 
-    public function addRefundOrder(RefundOrder $refundOrder): self
+    public function addRefundOrder(RefundOrder $refundOrder): void
     {
         if (!$this->refundOrders->contains($refundOrder)) {
-            $this->refundOrders[] = $refundOrder;
+            $this->refundOrders->add($refundOrder);
             $refundOrder->setPayOrder($this);
         }
-
-        return $this;
     }
 
-    public function removeRefundOrder(RefundOrder $refundOrder): self
+    public function removeRefundOrder(RefundOrder $refundOrder): void
     {
         if ($this->refundOrders->removeElement($refundOrder)) {
             // set the owning side to null (unless already changed)
@@ -426,8 +394,6 @@ class PayOrder implements \Stringable
                 $refundOrder->setPayOrder(null);
             }
         }
-
-        return $this;
     }
 
     public function getParent(): ?PayOrder
@@ -435,11 +401,9 @@ class PayOrder implements \Stringable
         return $this->parent;
     }
 
-    public function setParent(?PayOrder $parent): self
+    public function setParent(?PayOrder $parent): void
     {
         $this->parent = $parent;
-
-        return $this;
     }
 
     public function getDescription(): ?string
@@ -447,11 +411,9 @@ class PayOrder implements \Stringable
         return $this->description;
     }
 
-    public function setDescription(?string $description): static
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
-
-        return $this;
     }
 
     public function getPrepayId(): ?string
@@ -459,11 +421,9 @@ class PayOrder implements \Stringable
         return $this->prepayId;
     }
 
-    public function setPrepayId(?string $prepayId): static
+    public function setPrepayId(?string $prepayId): void
     {
         $this->prepayId = $prepayId;
-
-        return $this;
     }
 
     public function getPrepayExpireTime(): ?\DateTimeInterface
@@ -471,58 +431,37 @@ class PayOrder implements \Stringable
         return $this->prepayExpireTime;
     }
 
-    public function setPrepayExpireTime(?\DateTimeInterface $prepayExpireTime): static
+    public function setPrepayExpireTime(?\DateTimeInterface $prepayExpireTime): void
     {
         $this->prepayExpireTime = $prepayExpireTime;
-
-        return $this;
     }
 
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
-    public function setResponseData(?string $responseData): self
+    public function setResponseData(?string $responseData): void
     {
         $this->callbackResponse = $responseData;
-
-        return $this;
     }
 
-    public function setResponseSerial(?string $responseSerial): self
+    public function setResponseSerial(?string $responseSerial): void
     {
         // TODO: 可能需要添加一个新字段来存储响应序列号
         // 暂时先存储在 remark 中或忽略
-        return $this;
     }
 
-    public function setSuccessTime(?string $successTime): self
+    public function setSuccessTime(?string $successTime): void
     {
-        if (!empty($successTime)) {
+        if (null !== $successTime && '' !== $successTime) {
             $this->callbackTime = CarbonImmutable::parse($successTime);
         }
+    }
 
-        return $this;
+    public function getCurrency(): string
+    {
+        return $this->getFeeType();
+    }
+
+    public function setCurrency(string $currency): void
+    {
+        $this->setFeeType($currency);
     }
 
     public function __toString(): string

@@ -3,19 +3,36 @@
 namespace WechatPayBundle\Service;
 
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
-use Symfony\Component\Config\Loader\LoaderInterface;
-use Symfony\Component\Config\Loader\LoaderResolverInterface;
+use Symfony\Component\Config\Loader\Loader;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\Routing\RouteCollection;
+use Tourze\RoutingAutoLoaderBundle\Service\RoutingAutoLoaderInterface;
 use WechatPayBundle\Controller\AppController;
 use WechatPayBundle\Controller\UnifiedOrderController;
 
-class AttributeControllerLoader implements LoaderInterface
+#[AutoconfigureTag(name: 'routing.loader')]
+#[AutoconfigureTag(name: 'routing.auto.loader')]
+class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInterface
 {
-    public function __construct(
-        private AttributeRouteControllerLoader $controllerLoader
-    ) {}
+    private AttributeRouteControllerLoader $controllerLoader;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->controllerLoader = new AttributeRouteControllerLoader();
+    }
 
     public function load(mixed $resource, ?string $type = null): RouteCollection
+    {
+        return $this->autoload();
+    }
+
+    public function supports(mixed $resource, ?string $type = null): bool
+    {
+        return false;
+    }
+
+    public function autoload(): RouteCollection
     {
         $collection = new RouteCollection();
 
@@ -23,25 +40,5 @@ class AttributeControllerLoader implements LoaderInterface
         $collection->addCollection($this->controllerLoader->load(UnifiedOrderController::class));
 
         return $collection;
-    }
-
-    public function supports(mixed $resource, ?string $type = null): bool
-    {
-        return $type === 'wechat_pay_controllers';
-    }
-
-    public function getResolver(): LoaderResolverInterface
-    {
-        return $this->controllerLoader->getResolver();
-    }
-
-    public function setResolver(LoaderResolverInterface $resolver): void
-    {
-        $this->controllerLoader->setResolver($resolver);
-    }
-
-    public function autoload(): RouteCollection
-    {
-        return $this->load(null, 'wechat_pay_controllers');
     }
 }

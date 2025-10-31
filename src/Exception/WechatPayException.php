@@ -2,8 +2,6 @@
 
 namespace WechatPayBundle\Exception;
 
-use RuntimeException;
-
-class WechatPayException extends RuntimeException
+abstract class WechatPayException extends \RuntimeException
 {
 }

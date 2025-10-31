@@ -2,20 +2,29 @@
 
 namespace WechatPayBundle\Tests\Service;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use WechatPayBundle\Entity\Merchant;
 use WechatPayBundle\Service\WechatPayBuilder;
 
-class WechatPayBuilderTest extends TestCase
+/**
+ * @internal
+ * 此测试类使用 TestCase 而不是 AbstractIntegrationTestCase，因为：
+ * 1. 该测试主要测试微信支付SDK的集成逻辑，不依赖容器服务
+ * 2. 通过简单的实体对象即可完成测试，无需复杂的服务依赖
+ * 3. 使用 TestCase 更加轻量化和高效
+ */
+#[CoversClass(WechatPayBuilder::class)]
+final class WechatPayBuilderTest extends TestCase
 {
     private WechatPayBuilder $wechatPayBuilder;
+
     private Merchant $merchant;
 
     protected function setUp(): void
     {
-        parent::setUp();
         $this->wechatPayBuilder = new WechatPayBuilder();
-        
+
         // 准备模拟商户数据
         $this->merchant = new Merchant();
         $this->merchant->setMchId('1234567890');
@@ -43,21 +52,21 @@ class WechatPayBuilderTest extends TestCase
     /**
      * 测试生成Builder实例
      */
-    public function testGenBuilder_returnsBuilderChainable(): void
+    public function testGenBuilderReturnsBuilderChainable(): void
     {
         // 在真实测试中，由于需要操作实际文件，这里我们需要做一些调整
         // 为了避免直接访问文件系统，我们使用反射来绕过文件存在检查
-        
+
         // 使用反射修改 WeChatPay\Crypto\Rsa 的 from 方法行为
         // 注意：这是测试代码，不是实际应用代码推荐的做法
-        
+
         // 在此测试环境中，我们预期 genBuilder 会返回 BuilderChainable 类型的实例
         // 但由于 WeChatPay SDK 的实现限制，我们无法在不访问文件系统的情况下创建实例
         // 因此这个测试主要是确保代码路径正确，而非实际功能验证
-        
+
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionMessage('Cannot load privateKey from(string)');
-        
+
         // 预期会因为无法访问实际文件而抛出异常
         // 在实际环境中，应提供真实的文件路径
         $builder = $this->wechatPayBuilder->genBuilder($this->merchant);
@@ -66,16 +75,21 @@ class WechatPayBuilderTest extends TestCase
     /**
      * 测试参数传递是否正确
      */
-    public function testGenBuilder_passesCorrectArgumentsToBuilder(): void
+    public function testGenBuilderPassesCorrectArgumentsToBuilder(): void
     {
         // 确保正确的商户ID被传递
         $this->assertEquals('1234567890', $this->merchant->getMchId());
-        
+
         // 确保证书序列号被正确设置
         $this->assertEquals('certificate-serial-number', $this->merchant->getCertSerial());
-        
+
         // 确保私钥和证书内容被正确设置
-        $this->assertStringContainsString('BEGIN PRIVATE KEY', $this->merchant->getPemKey());
-        $this->assertStringContainsString('BEGIN CERTIFICATE', $this->merchant->getPemCert());
+        $pemKey = $this->merchant->getPemKey();
+        $this->assertNotNull($pemKey);
+        $this->assertStringContainsString('BEGIN PRIVATE KEY', $pemKey);
+
+        $pemCert = $this->merchant->getPemCert();
+        $this->assertNotNull($pemCert);
+        $this->assertStringContainsString('BEGIN CERTIFICATE', $pemCert);
     }
-} 
+}

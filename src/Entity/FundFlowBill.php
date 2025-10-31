@@ -4,6 +4,7 @@ namespace WechatPayBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use WechatPayBundle\Enum\AccountType;
 use WechatPayBundle\Repository\FundFlowBillRepository;
@@ -15,37 +16,48 @@ use WechatPayBundle\Repository\FundFlowBillRepository;
 #[ORM\Table(name: 'ims_wechat_payment_fund_flow_bill', options: ['comment' => '微信支付-资金账单'])]
 class FundFlowBill implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    private int $id = 0;
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
-    use TimestampableAware;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Merchant $merchant = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '账单日期'])]
+    #[Assert\NotNull(message: '账单日期不能为空')]
     private ?\DateTimeInterface $billDate = null;
 
     #[ORM\Column(length: 20, enumType: AccountType::class, options: ['comment' => '账单类型'])]
+    #[Assert\Choice(callback: [AccountType::class, 'cases'], message: '无效的账户类型')]
     private AccountType $accountType = AccountType::BASIC;
 
     #[ORM\Column(length: 20, options: ['comment' => '哈希类型'])]
+    #[Assert\NotBlank(message: '哈希类型不能为空')]
+    #[Assert\Length(max: 20, maxMessage: '哈希类型长度不能超过 {{ limit }} 个字符')]
     private ?string $hashType = null;
 
     #[ORM\Column(length: 1024, nullable: true, options: ['comment' => '哈希值'])]
+    #[Assert\Length(max: 1024, maxMessage: '哈希值长度不能超过 {{ limit }} 个字符')]
     private ?string $hashValue = null;
 
     #[ORM\Column(length: 2048, options: ['comment' => '下载地址'])]
+    #[Assert\NotBlank(message: '下载地址不能为空')]
+    #[Assert\Url(message: '下载地址必须是有效的URL')]
+    #[Assert\Length(max: 2048, maxMessage: '下载地址长度不能超过 {{ limit }} 个字符')]
     private ?string $downloadUrl = null;
 
     #[ORM\Column(length: 255, options: ['comment' => '本地路径'])]
+    #[Assert\NotBlank(message: '本地路径不能为空')]
+    #[Assert\Length(max: 255, maxMessage: '本地路径长度不能超过 {{ limit }} 个字符')]
     private ?string $localFile = null;
 
     public function getMerchant(): ?Merchant
@@ -53,11 +65,9 @@ class FundFlowBill implements \Stringable
         return $this->merchant;
     }
 
-    public function setMerchant(?Merchant $merchant): static
+    public function setMerchant(?Merchant $merchant): void
     {
         $this->merchant = $merchant;
-
-        return $this;
     }
 
     public function getBillDate(): ?\DateTimeInterface
@@ -65,11 +75,9 @@ class FundFlowBill implements \Stringable
         return $this->billDate;
     }
 
-    public function setBillDate(\DateTimeInterface $billDate): static
+    public function setBillDate(\DateTimeInterface $billDate): void
     {
         $this->billDate = $billDate;
-
-        return $this;
     }
 
     public function getAccountType(): AccountType
@@ -77,11 +85,9 @@ class FundFlowBill implements \Stringable
         return $this->accountType;
     }
 
-    public function setAccountType(AccountType $accountType): static
+    public function setAccountType(AccountType $accountType): void
     {
         $this->accountType = $accountType;
-
-        return $this;
     }
 
     public function getHashType(): ?string
@@ -89,11 +95,9 @@ class FundFlowBill implements \Stringable
         return $this->hashType;
     }
 
-    public function setHashType(string $hashType): static
+    public function setHashType(string $hashType): void
     {
         $this->hashType = $hashType;
-
-        return $this;
     }
 
     public function getHashValue(): ?string
@@ -101,11 +105,9 @@ class FundFlowBill implements \Stringable
         return $this->hashValue;
     }
 
-    public function setHashValue(?string $hashValue): static
+    public function setHashValue(?string $hashValue): void
     {
         $this->hashValue = $hashValue;
-
-        return $this;
     }
 
     public function getDownloadUrl(): ?string
@@ -113,11 +115,9 @@ class FundFlowBill implements \Stringable
         return $this->downloadUrl;
     }
 
-    public function setDownloadUrl(string $downloadUrl): static
+    public function setDownloadUrl(string $downloadUrl): void
     {
         $this->downloadUrl = $downloadUrl;
-
-        return $this;
     }
 
     public function getLocalFile(): ?string
@@ -125,11 +125,9 @@ class FundFlowBill implements \Stringable
         return $this->localFile;
     }
 
-    public function setLocalFile(string $localFile): static
+    public function setLocalFile(string $localFile): void
     {
         $this->localFile = $localFile;
-
-        return $this;
     }
 
     public function __toString(): string

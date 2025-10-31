@@ -1,3 +1,0 @@
-wechat_pay_controllers:
-  resource: '../../Controller/'
-  type: attribute

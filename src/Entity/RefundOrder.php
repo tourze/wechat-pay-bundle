@@ -8,8 +8,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Ignore;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -32,6 +32,7 @@ class RefundOrder implements \Stringable
     use SnowflakeKeyAware;
     use TimestampableAware;
     use BlameableAware;
+    use IpTraceableAware;
 
     /**
      * 有支付了，才可能有退款单.
@@ -41,71 +42,82 @@ class RefundOrder implements \Stringable
     private ?PayOrder $payOrder = null;
 
     #[ORM\Column(length: 50, options: ['comment' => '应用ID'])]
+    #[Assert\NotBlank(message: '应用ID不能为空')]
+    #[Assert\Length(max: 50, maxMessage: '应用ID长度不能超过 {{ limit }} 个字符')]
     private ?string $appId = null;
 
     #[ORM\Column(type: Types::STRING, length: 80, nullable: true, options: ['comment' => '退款原因'])]
+    #[Assert\Length(max: 80, maxMessage: '退款原因长度不能超过 {{ limit }} 个字符')]
     private ?string $reason = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '退款结果回调url'])]
+    #[Assert\Url(message: '退款结果回调url必须是有效的URL')]
+    #[Assert\Length(max: 255, maxMessage: '退款结果回调url长度不能超过 {{ limit }} 个字符')]
     private ?string $notifyUrl = null;
 
     #[ORM\Column(type: Types::STRING, length: 10, nullable: true, options: ['comment' => '退款币种'])]
+    #[Assert\Length(max: 10, maxMessage: '退款币种长度不能超过 {{ limit }} 个字符')]
     private ?string $currency = 'CNY';
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '退款金额'])]
+    #[Assert\NotNull(message: '退款金额不能为空')]
+    #[Assert\PositiveOrZero(message: '退款金额必须大于等于0')]
     private ?int $money = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '请求JSON'])]
+    #[Assert\Json(message: '请求JSON必须是有效的JSON格式')]
+    #[Assert\Length(max: 65535, maxMessage: '请求JSON内容过长')]
     private ?string $requestJson = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '响应JSON'])]
+    #[Assert\Json(message: '响应JSON必须是有效的JSON格式')]
+    #[Assert\Length(max: 65535, maxMessage: '响应JSON内容过长')]
     private ?string $responseJson = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '回调响应'])]
+    #[Assert\Json(message: '回调响应必须是有效的JSON格式')]
+    #[Assert\Length(max: 65535, maxMessage: '回调响应内容过长')]
     private ?string $callbackResponse = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '微信支付退款单号'])]
+    #[Assert\Length(max: 100, maxMessage: '微信支付退款单号长度不能超过 {{ limit }} 个字符')]
     private ?string $refundId = null;
 
     #[ORM\Column(type: Types::STRING, length: 32, nullable: true, options: ['comment' => '退款渠道'])]
+    #[Assert\Length(max: 32, maxMessage: '退款渠道长度不能超过 {{ limit }} 个字符')]
     private ?string $refundChannel = null;
 
     #[ORM\Column(type: Types::STRING, length: 120, nullable: true, options: ['comment' => '退款入账账户'])]
+    #[Assert\Length(max: 120, maxMessage: '退款入账账户长度不能超过 {{ limit }} 个字符')]
     private ?string $userReceiveAccount = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '退款成功时间'])]
+    #[Assert\Type(type: \DateTimeInterface::class, message: '退款成功时间必须是有效的日期时间')]
     private ?\DateTimeInterface $successTime = null;
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true, options: ['comment' => '退款状态'])]
+    #[Assert\Length(max: 64, maxMessage: '退款状态长度不能超过 {{ limit }} 个字符')]
     private ?string $status = null;
 
+    /**
+     * @var Collection<int, RefundGoodsDetail>
+     */
     #[ORM\OneToMany(mappedBy: 'refundOrder', targetEntity: RefundGoodsDetail::class)]
     private Collection $goodsDetails;
-
-    #[CreateIpColumn]
-    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '创建者IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '更新者IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __construct()
     {
         $this->goodsDetails = new ArrayCollection();
     }
 
-
     public function getPayOrder(): ?PayOrder
     {
         return $this->payOrder;
     }
 
-    public function setPayOrder(?PayOrder $payOrder): self
+    public function setPayOrder(?PayOrder $payOrder): void
     {
         $this->payOrder = $payOrder;
-
-        return $this;
     }
 
     public function getReason(): ?string
@@ -113,11 +125,9 @@ class RefundOrder implements \Stringable
         return $this->reason;
     }
 
-    public function setReason(?string $reason): self
+    public function setReason(?string $reason): void
     {
         $this->reason = $reason;
-
-        return $this;
     }
 
     public function getNotifyUrl(): ?string
@@ -125,11 +135,9 @@ class RefundOrder implements \Stringable
         return $this->notifyUrl;
     }
 
-    public function setNotifyUrl(?string $notifyUrl): self
+    public function setNotifyUrl(?string $notifyUrl): void
     {
         $this->notifyUrl = $notifyUrl;
-
-        return $this;
     }
 
     public function getCurrency(): ?string
@@ -137,11 +145,9 @@ class RefundOrder implements \Stringable
         return $this->currency;
     }
 
-    public function setCurrency(?string $currency): self
+    public function setCurrency(?string $currency): void
     {
         $this->currency = $currency;
-
-        return $this;
     }
 
     public function getMoney(): ?int
@@ -149,11 +155,9 @@ class RefundOrder implements \Stringable
         return $this->money;
     }
 
-    public function setMoney(int $money): self
+    public function setMoney(int $money): void
     {
         $this->money = $money;
-
-        return $this;
     }
 
     public function getRequestJson(): ?string
@@ -161,11 +165,9 @@ class RefundOrder implements \Stringable
         return $this->requestJson;
     }
 
-    public function setRequestJson(string $requestJson): self
+    public function setRequestJson(?string $requestJson): void
     {
         $this->requestJson = $requestJson;
-
-        return $this;
     }
 
     public function getResponseJson(): ?string
@@ -173,11 +175,9 @@ class RefundOrder implements \Stringable
         return $this->responseJson;
     }
 
-    public function setResponseJson(?string $responseJson): self
+    public function setResponseJson(?string $responseJson): void
     {
         $this->responseJson = $responseJson;
-
-        return $this;
     }
 
     public function getRefundId(): ?string
@@ -185,11 +185,9 @@ class RefundOrder implements \Stringable
         return $this->refundId;
     }
 
-    public function setRefundId(?string $refundId): self
+    public function setRefundId(?string $refundId): void
     {
         $this->refundId = $refundId;
-
-        return $this;
     }
 
     public function getRefundChannel(): ?string
@@ -197,11 +195,9 @@ class RefundOrder implements \Stringable
         return $this->refundChannel;
     }
 
-    public function setRefundChannel(?string $refundChannel): self
+    public function setRefundChannel(?string $refundChannel): void
     {
         $this->refundChannel = $refundChannel;
-
-        return $this;
     }
 
     public function getUserReceiveAccount(): ?string
@@ -209,11 +205,9 @@ class RefundOrder implements \Stringable
         return $this->userReceiveAccount;
     }
 
-    public function setUserReceiveAccount(?string $userReceiveAccount): self
+    public function setUserReceiveAccount(?string $userReceiveAccount): void
     {
         $this->userReceiveAccount = $userReceiveAccount;
-
-        return $this;
     }
 
     public function getSuccessTime(): ?\DateTimeInterface
@@ -221,11 +215,9 @@ class RefundOrder implements \Stringable
         return $this->successTime;
     }
 
-    public function setSuccessTime(?\DateTimeInterface $successTime): self
+    public function setSuccessTime(?\DateTimeInterface $successTime): void
     {
         $this->successTime = $successTime;
-
-        return $this;
     }
 
     public function getStatus(): ?string
@@ -233,11 +225,9 @@ class RefundOrder implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(?string $status): self
+    public function setStatus(?string $status): void
     {
         $this->status = $status;
-
-        return $this;
     }
 
     public function getCallbackResponse(): ?string
@@ -245,16 +235,15 @@ class RefundOrder implements \Stringable
         return $this->callbackResponse;
     }
 
-    public function setCallbackResponse(?string $callbackResponse): self
+    public function setCallbackResponse(?string $callbackResponse): void
     {
         $this->callbackResponse = $callbackResponse;
-
-        return $this;
     }
 
     /**
      * 根据微信接口的返回结果，设置数据.
      *
+     * @param array<string, mixed> $response
      * @see https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_1_10.shtml
      */
     public function processResponseData(array $response): void
@@ -263,12 +252,46 @@ class RefundOrder implements \Stringable
             return;
         }
         $this->setResponseJson(Json::encode($response));
-        $this->setRefundId($response['refund_id']);
-        $this->setRefundChannel($response['channel']);
-        $this->setUserReceiveAccount($response['user_received_account']);
-        $this->setSuccessTime(CarbonImmutable::parse($response['success_time']));
-        $this->setCreateTime(CarbonImmutable::parse($response['create_time']));
-        $this->setStatus($response['status']);
+        $this->processBasicFields($response);
+        $this->processTimeFields($response);
+    }
+
+    /**
+     * @param array<string, mixed> $response
+     */
+    private function processBasicFields(array $response): void
+    {
+        $refundId = \is_string($response['refund_id']) ? $response['refund_id'] : null;
+        $this->setRefundId($refundId);
+
+        $channel = isset($response['channel']) && \is_string($response['channel']) ? $response['channel'] : null;
+        $this->setRefundChannel($channel);
+
+        $userReceiveAccount = isset($response['user_received_account']) && \is_string($response['user_received_account']) ? $response['user_received_account'] : null;
+        $this->setUserReceiveAccount($userReceiveAccount);
+
+        $status = isset($response['status']) && \is_string($response['status']) ? $response['status'] : null;
+        $this->setStatus($status);
+    }
+
+    /**
+     * @param array<string, mixed> $response
+     */
+    private function processTimeFields(array $response): void
+    {
+        if (isset($response['success_time'])) {
+            $successTime = $response['success_time'];
+            if (\is_string($successTime) || \is_int($successTime)) {
+                $this->setSuccessTime(CarbonImmutable::parse($successTime));
+            }
+        }
+
+        if (isset($response['create_time'])) {
+            $createTime = $response['create_time'];
+            if (\is_string($createTime) || \is_int($createTime)) {
+                $this->setCreateTime(CarbonImmutable::parse($createTime));
+            }
+        }
     }
 
     /**
@@ -279,17 +302,15 @@ class RefundOrder implements \Stringable
         return $this->goodsDetails;
     }
 
-    public function addGoodsDetail(RefundGoodsDetail $goodsDetail): static
+    public function addGoodsDetail(RefundGoodsDetail $goodsDetail): void
     {
         if (!$this->goodsDetails->contains($goodsDetail)) {
             $this->goodsDetails->add($goodsDetail);
             $goodsDetail->setRefundOrder($this);
         }
-
-        return $this;
     }
 
-    public function removeGoodsDetail(RefundGoodsDetail $goodsDetail): static
+    public function removeGoodsDetail(RefundGoodsDetail $goodsDetail): void
     {
         if ($this->goodsDetails->removeElement($goodsDetail)) {
             // set the owning side to null (unless already changed)
@@ -297,8 +318,6 @@ class RefundOrder implements \Stringable
                 $goodsDetail->setRefundOrder(null);
             }
         }
-
-        return $this;
     }
 
     public function getAppId(): ?string
@@ -306,39 +325,13 @@ class RefundOrder implements \Stringable
         return $this->appId;
     }
 
-    public function setAppId(string $appId): static
+    public function setAppId(string $appId): void
     {
         $this->appId = $appId;
-
-        return $this;
-    }
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
     }
 
     public function __toString(): string
     {
-        return (string)$this->getId();
+        return (string) $this->getId();
     }
 }

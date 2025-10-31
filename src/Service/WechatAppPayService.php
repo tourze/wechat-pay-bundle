@@ -5,35 +5,47 @@ namespace WechatPayBundle\Service;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use HttpClientBundle\Service\SmartHttpClient;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Tourze\XML\XML;
+use WechatPayBundle\Entity\Merchant;
 use WechatPayBundle\Entity\PayOrder;
 use WechatPayBundle\Enum\PayOrderStatus;
 use WechatPayBundle\Exception\PaymentParameterException;
+use WechatPayBundle\Exception\WechatPayException;
 use WechatPayBundle\Repository\MerchantRepository;
 use WechatPayBundle\Request\AppOrderParams;
 use Yiisoft\Arrays\ArrayHelper;
 use Yiisoft\Json\Json;
 
-class WechatAppPayService
+#[Autoconfigure(public: true)]
+#[WithMonologChannel(channel: 'wechat_pay')]
+readonly class WechatAppPayService
 {
     public function __construct(
-        private readonly MerchantRepository $merchantRepository,
-        private readonly LoggerInterface $logger,
-        private readonly SmartHttpClient $httpClient,
-        private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly RequestStack $requestStack,
-        private readonly EntityManagerInterface $entityManager,
-    ) {}
+        private MerchantRepository $merchantRepository,
+        private LoggerInterface $logger,
+        private SmartHttpClient $httpClient,
+        private UrlGeneratorInterface $urlGenerator,
+        private RequestStack $requestStack,
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
-    public function createAppOrder(AppOrderParams $appOrderParams)
+    /**
+     * @return array<string, mixed>
+     */
+    public function createAppOrder(AppOrderParams $appOrderParams): array
     {
         // 如果没声明，我们就取第一个支付配置
-        if (empty($appOrderParams->getMchId())) {
+        if ('' === $appOrderParams->getMchId()) {
+            /** @var Merchant|null $merchant */
             $merchant = $this->merchantRepository->findOneBy([], ['id' => 'DESC']);
         } else {
+            /** @var Merchant|null $merchant */
             $merchant = $this->merchantRepository->findOneBy([
                 'mchId' => $appOrderParams->getMchId(),
             ]);
@@ -43,15 +55,28 @@ class WechatAppPayService
         $attach = $appOrderParams->getAttach();
         $description = $appOrderParams->getDescription();
         $payOrder = new PayOrder();
-        $payOrder->setMerchant($merchant);
+        if (null !== $merchant) {
+            $payOrder->setMerchant($merchant);
+        }
         $payOrder->setStatus(PayOrderStatus::INIT);
         $payOrder->setBody($description); // 公众号appID
         $payOrder->setAppId($appid); // 公众号appID
+        if (null === $merchant) {
+            throw new PaymentParameterException('Merchant not found');
+        }
         $payOrder->setMchId($merchant->getMchId());
         $payOrder->setTradeType('APP');
         $payOrder->setTradeNo($appOrderParams->getContractId());
         $payOrder->setAttach($attach);
-        $payOrder->setCreateIp($this->requestStack->getCurrentRequest()->getClientIp());
+        $currentRequest = $this->requestStack->getCurrentRequest();
+        if (null === $currentRequest) {
+            throw new PaymentParameterException('Current request is null');
+        }
+        $clientIp = $currentRequest->getClientIp();
+        if (null === $clientIp) {
+            throw new PaymentParameterException('Client IP is null');
+        }
+        $payOrder->setCreatedFromIp($clientIp);
 
         $startTime = CarbonImmutable::now();
         // 一般是15分钟后过期
@@ -83,16 +108,21 @@ class WechatAppPayService
             'trade_type' => 'APP',
             'nonce_str' => uniqid(),
             'out_trade_no' => $payOrder->getTradeNo(),
-            'time_expire' => $payOrder->getExpireTime()->format('YmdHis'),
+            'time_expire' => $payOrder->getExpireTime()?->format('YmdHis') ?? '',
             'notify_url' => $payOrder->getNotifyUrl(),
             'total_fee' => $payOrder->getTotalFee(),
-            'spbill_create_ip' => $this->requestStack->getCurrentRequest()->getClientIp(),
+            'spbill_create_ip' => $clientIp,
         ];
-        if (!empty($payOrder->getAttach())) {
-            $requestJson['attach'] = $payOrder->getAttach();
+        $attach = $payOrder->getAttach();
+        if ('' !== $attach) {
+            $requestJson['attach'] = $attach;
         }
         $payOrder->setRequestJson(Json::encode($requestJson));
-        $sign = $this->generateSign($requestJson, $merchant->getPemKey());
+        $pemKey = $merchant->getPemKey();
+        if (null === $pemKey) {
+            throw new PaymentParameterException('Merchant PEM key is null');
+        }
+        $sign = $this->generateSign($requestJson, $pemKey);
         $requestJson['sign'] = $sign;
         $postXml = XML::build($requestJson);
         $this->logger->info('统一下单参数', [
@@ -108,7 +138,7 @@ class WechatAppPayService
             'json' => $json,
         ]);
         $prepayId = ArrayHelper::getValue($json, 'prepay_id');
-        if (empty($prepayId)) {
+        if (null === $prepayId || '' === $prepayId) {
             throw new PaymentParameterException('获取微信APP支付关键参数出错');
         }
 
@@ -123,15 +153,26 @@ class WechatAppPayService
         //    "retmsg": "ok"
         // }
         // 创建返回给客户端的数据
+        $mchId = ArrayHelper::getValue($json, 'mch_id');
+        \assert(\is_string($mchId));
+        $prepayId = ArrayHelper::getValue($json, 'prepay_id');
+        \assert(\is_string($prepayId));
+        $nonceStr = ArrayHelper::getValue($json, 'nonce_str');
+        \assert(\is_string($nonceStr));
+
         $ret = [];
         $ret['appid'] = $appid;
-        $ret['partnerid'] = $json['mch_id'];
-        $ret['prepayid'] = $json['prepay_id'];
+        $ret['partnerid'] = $mchId;
+        $ret['prepayid'] = $prepayId;
         $ret['package'] = 'Sign=WXPay';
-        $ret['noncestr'] = $json['nonce_str'];
+        $ret['noncestr'] = $nonceStr;
         $ret['timestamp'] = time();
         $stringA = "appid={$ret['appid']}&noncestr={$ret['noncestr']}&package={$ret['package']}&partnerid={$ret['partnerid']}&prepayid={$ret['prepayid']}&timestamp={$ret['timestamp']}";
-        $stringSignTemp = "{$stringA}&key={$merchant->getPemKey()}";
+        $merchantPemKey = $merchant->getPemKey();
+        if (null === $merchantPemKey) {
+            throw new PaymentParameterException('Merchant PEM key is null');
+        }
+        $stringSignTemp = "{$stringA}&key={$merchantPemKey}";
         $sign = strtoupper(md5($stringSignTemp));
         $ret['sign'] = $sign;
 
@@ -141,22 +182,34 @@ class WechatAppPayService
     }
 
     /**
-     * Generate a signature.
+     * 生成签名
      *
+     * @param array<string, mixed> $attributes
      * @param string $key
      * @param string $encryptMethod
      */
-    public function generateSign(array $attributes, $key, $encryptMethod = 'md5'): string
+    public function generateSign(array $attributes, string $key, string $encryptMethod = 'md5'): string
     {
         ksort($attributes);
 
         $attributes['key'] = $key;
 
-        return strtoupper((string) call_user_func_array($encryptMethod, [urldecode(http_build_query($attributes))]));
+        $queryString = urldecode(http_build_query($attributes));
+
+        return match ($encryptMethod) {
+            'md5' => strtoupper(md5($queryString)),
+            'sha1' => strtoupper(sha1($queryString)),
+            default => strtoupper(hash($encryptMethod, $queryString)),
+        };
     }
 
-    public function notify() {}
+    public function notify(): void
+    {
+    }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getTradeOrderDetail(string $tradeNo): array
     {
         // TODO

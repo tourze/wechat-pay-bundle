@@ -2,16 +2,37 @@
 
 namespace WechatPayBundle\Tests\Entity;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use WechatPayBundle\Entity\Merchant;
 
-class MerchantTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Merchant::class)]
+final class MerchantTest extends AbstractEntityTestCase
 {
+    protected function createEntity(): object
+    {
+        return new Merchant();
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        return [
+            'mchId' => ['mchId', 'test_value'],
+        ];
+    }
+
     private Merchant $merchant;
 
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->merchant = new Merchant();
     }
 
@@ -132,7 +153,7 @@ class MerchantTest extends TestCase
     public function testToString(): void
     {
         // 无ID时返回空字符串
-        $this->assertEquals('', (string)$this->merchant);
+        $this->assertEquals('', (string) $this->merchant);
 
         // 使用反射设置ID
         $reflection = new \ReflectionClass(Merchant::class);
@@ -144,26 +165,24 @@ class MerchantTest extends TestCase
         $this->merchant->setMchId('merchant_id_12345');
 
         // 测试字符串转换
-        $this->assertEquals('merchant_id_12345', (string)$this->merchant);
+        $this->assertEquals('merchant_id_12345', (string) $this->merchant);
     }
 
     /**
-     * 测试链式调用
+     * 测试设置多个属性
      */
-    public function testFluentInterface(): void
+    public function testSetMultipleProperties(): void
     {
-        $result = $this->merchant
-            ->setMchId('1234567890')
-            ->setApiKey('api_key')
-            ->setPemKey('pem_key')
-            ->setCertSerial('cert_serial')
-            ->setPemCert('pem_cert')
-            ->setRemark('remark')
-            ->setValid(true)
-            ->setCreatedBy('user1')
-            ->setUpdatedBy('user2');
+        $this->merchant->setMchId('1234567890');
+        $this->merchant->setApiKey('api_key');
+        $this->merchant->setPemKey('pem_key');
+        $this->merchant->setCertSerial('cert_serial');
+        $this->merchant->setPemCert('pem_cert');
+        $this->merchant->setRemark('remark');
+        $this->merchant->setValid(true);
+        $this->merchant->setCreatedBy('user1');
+        $this->merchant->setUpdatedBy('user2');
 
-        $this->assertSame($this->merchant, $result);
         $this->assertEquals('1234567890', $this->merchant->getMchId());
         $this->assertEquals('api_key', $this->merchant->getApiKey());
         $this->assertEquals('pem_key', $this->merchant->getPemKey());

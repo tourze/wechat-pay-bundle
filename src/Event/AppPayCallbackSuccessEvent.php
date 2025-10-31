@@ -12,6 +12,7 @@ class AppPayCallbackSuccessEvent extends Event
 {
     private PayOrder $payOrder;
 
+    /** @var array<string, mixed> */
     private array $decryptData = [];
 
     public function getPayOrder(): PayOrder
@@ -24,11 +25,17 @@ class AppPayCallbackSuccessEvent extends Event
         $this->payOrder = $payOrder;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getDecryptData(): array
     {
         return $this->decryptData;
     }
 
+    /**
+     * @param array<string, mixed> $decryptData
+     */
     public function setDecryptData(array $decryptData): void
     {
         $this->decryptData = $decryptData;

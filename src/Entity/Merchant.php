@@ -4,6 +4,7 @@ namespace WechatPayBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
@@ -27,46 +28,53 @@ class Merchant implements \Stringable
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
+    #[Assert\Type(type: 'bool', message: '有效状态必须是布尔值')]
     private ?bool $valid = false;
 
     #[ORM\Column(type: Types::STRING, length: 64, unique: true, options: ['comment' => '商户号'])]
+    #[Assert\NotBlank(message: '商户号不能为空')]
+    #[Assert\Length(max: 64, maxMessage: '商户号长度不能超过 {{ limit }} 个字符')]
     private string $mchId;
 
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '秘钥key'])]
+    #[Assert\NotBlank(message: 'API秘钥不能为空')]
+    #[Assert\Length(max: 100, maxMessage: 'API秘钥长度不能超过 {{ limit }} 个字符')]
     private ?string $apiKey = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '商户API私钥'])]
+    #[Assert\Length(max: 10000, maxMessage: '商户API私钥内容过长')]
     private ?string $pemKey = null;
 
     #[ORM\Column(type: Types::STRING, length: 128, options: ['comment' => '证书序列号'])]
+    #[Assert\NotBlank(message: '证书序列号不能为空')]
+    #[Assert\Length(max: 128, maxMessage: '证书序列号长度不能超过 {{ limit }} 个字符')]
     private ?string $certSerial = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '微信支付平台证书'])]
+    #[Assert\Length(max: 10000, maxMessage: '微信支付平台证书内容过长')]
     private ?string $pemCert = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
+    #[Assert\Length(max: 100, maxMessage: '备注长度不能超过 {{ limit }} 个字符')]
     private ?string $remark = null;
 
     public function __toString(): string
     {
-        if ($this->getId() === null) {
+        if (null === $this->getId()) {
             return '';
         }
 
         return $this->getMchId();
     }
 
-
     public function isValid(): ?bool
     {
         return $this->valid;
     }
 
-    public function setValid(?bool $valid): self
+    public function setValid(?bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
 
     public function getMchId(): string
@@ -74,11 +82,9 @@ class Merchant implements \Stringable
         return $this->mchId;
     }
 
-    public function setMchId(string $mchId): self
+    public function setMchId(string $mchId): void
     {
         $this->mchId = $mchId;
-
-        return $this;
     }
 
     public function getApiKey(): ?string
@@ -86,11 +92,9 @@ class Merchant implements \Stringable
         return $this->apiKey;
     }
 
-    public function setApiKey(string $apiKey): self
+    public function setApiKey(string $apiKey): void
     {
         $this->apiKey = $apiKey;
-
-        return $this;
     }
 
     public function getPemCert(): ?string
@@ -98,11 +102,9 @@ class Merchant implements \Stringable
         return $this->pemCert;
     }
 
-    public function setPemCert(?string $pemCert): self
+    public function setPemCert(?string $pemCert): void
     {
         $this->pemCert = $pemCert;
-
-        return $this;
     }
 
     public function getPemKey(): ?string
@@ -110,11 +112,9 @@ class Merchant implements \Stringable
         return $this->pemKey;
     }
 
-    public function setPemKey(?string $pemKey): self
+    public function setPemKey(?string $pemKey): void
     {
         $this->pemKey = $pemKey;
-
-        return $this;
     }
 
     public function getRemark(): ?string
@@ -122,11 +122,9 @@ class Merchant implements \Stringable
         return $this->remark;
     }
 
-    public function setRemark(?string $remark): self
+    public function setRemark(?string $remark): void
     {
         $this->remark = $remark;
-
-        return $this;
     }
 
     public function getCertSerial(): ?string
@@ -134,11 +132,9 @@ class Merchant implements \Stringable
         return $this->certSerial;
     }
 
-    public function setCertSerial(string $certSerial): self
+    public function setCertSerial(string $certSerial): void
     {
         $this->certSerial = $certSerial;
-
-        return $this;
     }
 
     public function getKey(): ?string

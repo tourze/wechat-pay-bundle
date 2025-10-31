@@ -10,6 +10,7 @@ use WechatPayBundle\Entity\PayOrder;
  */
 class JSAPIPayCallbackSuccessEvent extends Event
 {
+    /** @var array<string, mixed> */
     protected array $payload = [];
 
     private PayOrder $payOrder;
@@ -24,11 +25,17 @@ class JSAPIPayCallbackSuccessEvent extends Event
         $this->payOrder = $payOrder;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getPayload(): array
     {
         return $this->payload;
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function setPayload(array $payload): void
     {
         $this->payload = $payload;

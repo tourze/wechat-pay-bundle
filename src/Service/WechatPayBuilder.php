@@ -22,9 +22,9 @@ class WechatPayBuilder
         $merchantPrivateKeyInstance = Rsa::from($pemKey, Rsa::KEY_TYPE_PRIVATE);
         // 「商户API证书」的「证书序列号」
         $merchantCertificateSerial = $merchant->getCertSerial();
-        $platformPublicKeyInstance = Rsa::from($platformCertificateFilePath, Rsa::KEY_TYPE_PUBLIC);
+        $platformPublicKeyInstance = $this->getPlatformPublicKey($merchant);
         // 从「微信支付平台证书」中获取「证书序列号」
-        $platformCertificateSerial = PemUtil::parseCertificateSerialNo($platformCertificateFilePath);
+        $platformCertificateSerial = $this->getPlatformCertificateSerial($merchant);
 
         // 构造一个 APIv3 客户端实例
         return Builder::factory([
@@ -35,5 +35,28 @@ class WechatPayBuilder
                 $platformCertificateSerial => $platformPublicKeyInstance,
             ],
         ]);
+    }
+
+    /**
+     * @return \OpenSSLAsymmetricKey|\OpenSSLCertificate|resource|mixed
+     */
+    public function getPlatformPublicKey(Merchant $merchant)
+    {
+        $certificate = $merchant->getPemCert();
+        if (null === $certificate || '' === $certificate) {
+            throw new \RuntimeException('未配置微信支付平台证书');
+        }
+
+        return Rsa::from($certificate, Rsa::KEY_TYPE_PUBLIC);
+    }
+
+    public function getPlatformCertificateSerial(Merchant $merchant): string
+    {
+        $certificate = $merchant->getPemCert();
+        if (null === $certificate || '' === $certificate) {
+            throw new \RuntimeException('未配置微信支付平台证书');
+        }
+
+        return PemUtil::parseCertificateSerialNo($certificate);
     }
 }

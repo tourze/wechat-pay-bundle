@@ -14,15 +14,19 @@ enum PayOrderStatus: string implements Labelable, Itemable, Selectable
     use SelectTrait;
 
     case INIT = 'init';
+    case PAYING = 'paying';
     case SUCCESS = 'success';
     case FAILED = 'failed';
+    case CLOSED = 'closed';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::INIT => '未回调',
+            self::PAYING => '支付中',
             self::SUCCESS => '回调成功',
             self::FAILED => '回调失败',
+            self::CLOSED => '已关闭',
         };
     }
 }

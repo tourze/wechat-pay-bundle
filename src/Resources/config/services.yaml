@@ -10,8 +10,6 @@ services:
     resource: '../../Controller/'
   WechatPayBundle\EventSubscriber\:
     resource: '../../EventSubscriber/'
-  WechatPayBundle\MessageHandler\:
-    resource: '../../MessageHandler/'
   WechatPayBundle\Procedure\:
     resource: '../../Procedure/'
   WechatPayBundle\Repository\:

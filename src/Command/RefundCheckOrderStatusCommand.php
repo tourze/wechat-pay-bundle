@@ -3,6 +3,7 @@
 namespace WechatPayBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -21,6 +22,7 @@ use Yiisoft\Json\Json;
  */
 #[AsCronTask(expression: '* * * * *')]
 #[AsCommand(name: self::NAME, description: '检查退款订单状态')]
+#[WithMonologChannel(channel: 'wechat_pay')]
 class RefundCheckOrderStatusCommand extends Command
 {
     public const NAME = 'wechat:refund:check-order-status';
@@ -39,31 +41,68 @@ class RefundCheckOrderStatusCommand extends Command
         $qb = $this->refundOrderRepository->createQueryBuilder('a')
             ->where('a.status IS NULL')
             ->andWhere('a.status = :status')
-            ->setParameter('status', 'PROCESSING');
+            ->setParameter('status', 'PROCESSING')
+        ;
 
         foreach ($qb->getQuery()->toIterable() as $row) {
             /** @var RefundOrder $row */
-            $builder = $this->wechatPayBuilder->genBuilder($row->getPayOrder()->getMerchant());
-            $response = $builder->chain("v3/refund/domestic/refunds/{$row->getId()}")->get();
-            $response = $response->getBody()->getContents();
-            $row->setResponseJson($response);
-
-            $response = Json::decode($response);
-            $this->logger->info('查询订单退款状态', $response);
-
-            if (!isset($response['refund_id'])) {
-                // 订单不存在？或者有报错
-                $row->setStatus('CLOSED');
-                $this->entityManager->persist($row);
-                $this->entityManager->flush();
+            $payOrder = $row->getPayOrder();
+            if (null === $payOrder) {
+                $this->logger->error('RefundOrder payOrder is null', ['refund_id' => $row->getId()]);
                 continue;
             }
+            $merchant = $payOrder->getMerchant();
+            if (null === $merchant) {
+                $this->logger->error('PayOrder merchant is null', ['refund_id' => $row->getId()]);
+                continue;
+            }
+            $builder = $this->wechatPayBuilder->genBuilder($merchant);
+            $startTime = microtime(true);
+            try {
+                $tradeNo = $payOrder->getTradeNo();
+                if (null === $tradeNo) {
+                    $this->logger->error('PayOrder tradeNo is null', ['refund_id' => $row->getId()]);
+                    continue;
+                }
+                $this->logger->info('开始查询微信退款订单状态', [
+                    'refund_id' => $row->getId(),
+                    'out_trade_no' => $tradeNo,
+                ]);
+                $response = $builder->chain("v3/refund/domestic/refunds/{$row->getId()}")->get();
+                $response = $response->getBody()->getContents();
+                $row->setResponseJson($response);
 
-            // 保存数据咯
-            $row->processResponseData($response);
-            $this->entityManager->persist($row);
-            $this->entityManager->flush();
-            $this->entityManager->detach($row);
+                /** @var array<string, mixed> $responseData */
+                $responseData = Json::decode($response);
+                $endTime = microtime(true);
+
+                $this->logger->info('查询订单退款状态成功', [
+                    'refund_id' => $row->getId(),
+                    'response' => $responseData,
+                    'duration_ms' => round(($endTime - $startTime) * 1000, 2),
+                ]);
+
+                if (!isset($responseData['refund_id'])) {
+                    // 订单不存在？或者有报错
+                    $row->setStatus('CLOSED');
+                    $this->entityManager->persist($row);
+                    $this->entityManager->flush();
+                    continue;
+                }
+
+                // 保存数据咯
+                $row->processResponseData($responseData);
+                $this->entityManager->persist($row);
+                $this->entityManager->flush();
+                $this->entityManager->detach($row);
+            } catch (\Throwable $e) {
+                $endTime = microtime(true);
+                $this->logger->error('查询订单退款状态失败', [
+                    'refund_id' => $row->getId(),
+                    'exception' => $e->getMessage(),
+                    'duration_ms' => round(($endTime - $startTime) * 1000, 2),
+                ]);
+            }
         }
 
         return Command::SUCCESS;
