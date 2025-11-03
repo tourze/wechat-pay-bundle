@@ -9,6 +9,7 @@ use Tourze\BundleDependency\BundleDependencyInterface;
 use Tourze\FileStorageBundle\FileStorageBundle;
 use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
 use Tourze\Symfony\CronJob\CronJobBundle;
+use Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle;
 
 class WechatPayBundle extends Bundle implements BundleDependencyInterface
 {
@@ -20,6 +21,7 @@ class WechatPayBundle extends Bundle implements BundleDependencyInterface
             CronJobBundle::class => ['all' => true],
             FileStorageBundle::class => ['all' => true],
             RoutingAutoLoaderBundle::class => ['all' => true],
+            EasyAdminMenuBundle::class => ['all' => true],
         ];
     }
 }
