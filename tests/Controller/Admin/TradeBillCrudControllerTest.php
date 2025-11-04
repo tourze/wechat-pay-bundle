@@ -67,7 +67,7 @@ final class TradeBillCrudControllerTest extends AbstractEasyAdminControllerTestC
         yield 'localFile' => ['localFile'];
     }
 
-    protected function onSetUp(): void
+    protected function afterEasyAdminSetUp(): void
     {
         // Database is already cleaned by createClientWithDatabase()
     }

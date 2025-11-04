@@ -48,7 +48,7 @@ final class FundFlowBillCrudControllerTest extends AbstractEasyAdminControllerTe
         yield 'localFile' => ['localFile'];
     }
 
-    protected function onSetUp(): void
+    protected function onAfterSetUp(): void
     {
         // Database is already cleaned by createClientWithDatabase()
     }

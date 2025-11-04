@@ -60,7 +60,7 @@ final class MerchantCrudControllerTest extends AbstractEasyAdminControllerTestCa
         yield 'remark' => ['remark'];
     }
 
-    protected function onSetUp(): void
+    protected function onAfterSetUp(): void
     {
         // Database is already cleaned by createClientWithDatabase()
     }
