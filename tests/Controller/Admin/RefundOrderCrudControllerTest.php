@@ -74,11 +74,6 @@ final class RefundOrderCrudControllerTest extends AbstractEasyAdminControllerTes
         yield 'successTime' => ['successTime'];
     }
 
-    protected function onAfterSetUp(): void
-    {
-        // Database is already cleaned by createClientWithDatabase()
-    }
-
     public function testControllerClassStructure(): void
     {
         $controller = self::getService(RefundOrderCrudController::class);

@@ -60,11 +60,6 @@ final class MerchantCrudControllerTest extends AbstractEasyAdminControllerTestCa
         yield 'remark' => ['remark'];
     }
 
-    protected function onAfterSetUp(): void
-    {
-        // Database is already cleaned by createClientWithDatabase()
-    }
-
     public function testControllerClassStructure(): void
     {
         $controller = self::getService(MerchantCrudController::class);

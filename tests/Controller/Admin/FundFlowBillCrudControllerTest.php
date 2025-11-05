@@ -48,11 +48,6 @@ final class FundFlowBillCrudControllerTest extends AbstractEasyAdminControllerTe
         yield 'localFile' => ['localFile'];
     }
 
-    protected function onAfterSetUp(): void
-    {
-        // Database is already cleaned by createClientWithDatabase()
-    }
-
     public function testControllerClassStructure(): void
     {
         $controller = self::getService(FundFlowBillCrudController::class);

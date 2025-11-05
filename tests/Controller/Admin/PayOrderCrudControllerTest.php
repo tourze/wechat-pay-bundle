@@ -101,11 +101,6 @@ final class PayOrderCrudControllerTest extends AbstractEasyAdminControllerTestCa
         yield 'remark' => ['remark'];
     }
 
-    protected function onAfterSetUp(): void
-    {
-        // Database is already cleaned by createClientWithDatabase()
-    }
-
     public function testControllerClassStructure(): void
     {
         $controller = self::getService(PayOrderCrudController::class);
