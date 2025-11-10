@@ -5,11 +5,11 @@ namespace WechatPayBundle\Service;
 use BaconQrCodeBundle\Service\QrcodeService;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use HttpClientBundle\Service\SmartHttpClient;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Tourze\XML\XML;
 use WechatPayBundle\Entity\Merchant;
 use WechatPayBundle\Entity\PayOrder;
@@ -36,7 +36,7 @@ abstract class UnifiedOrder
     public function __construct(
         private readonly MerchantRepository $merchantRepository,
         private readonly LoggerInterface $logger,
-        private readonly SmartHttpClient $httpClient,
+        private readonly HttpClientInterface $httpClient,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly RequestStack $requestStack,
         private readonly QrcodeService $qrcodeService,

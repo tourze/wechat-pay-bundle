@@ -4,12 +4,12 @@ namespace WechatPayBundle\Service;
 
 use BaconQrCodeBundle\Service\QrcodeService;
 use Doctrine\ORM\EntityManagerInterface;
-use HttpClientBundle\Service\SmartHttpClient;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use WechatPayBundle\Repository\MerchantRepository;
 
 #[Autoconfigure(public: true)]
@@ -19,7 +19,7 @@ class WechatJsApiPayService extends UnifiedOrder
     public function __construct(
         MerchantRepository $merchantRepository,
         LoggerInterface $logger,
-        SmartHttpClient $httpClient,
+        HttpClientInterface $httpClient,
         UrlGeneratorInterface $urlGenerator,
         RequestStack $requestStack,
         QrcodeService $qrcodeService,

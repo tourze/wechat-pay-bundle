@@ -4,18 +4,17 @@ namespace WechatPayBundle\Service;
 
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use HttpClientBundle\Service\SmartHttpClient;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Tourze\XML\XML;
 use WechatPayBundle\Entity\Merchant;
 use WechatPayBundle\Entity\PayOrder;
 use WechatPayBundle\Enum\PayOrderStatus;
 use WechatPayBundle\Exception\PaymentParameterException;
-use WechatPayBundle\Exception\WechatPayException;
 use WechatPayBundle\Repository\MerchantRepository;
 use WechatPayBundle\Request\AppOrderParams;
 use Yiisoft\Arrays\ArrayHelper;
@@ -28,7 +27,7 @@ readonly class WechatAppPayService
     public function __construct(
         private MerchantRepository $merchantRepository,
         private LoggerInterface $logger,
-        private SmartHttpClient $httpClient,
+        private HttpClientInterface $httpClient,
         private UrlGeneratorInterface $urlGenerator,
         private RequestStack $requestStack,
         private EntityManagerInterface $entityManager,

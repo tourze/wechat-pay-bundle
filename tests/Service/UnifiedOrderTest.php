@@ -49,6 +49,7 @@ final class UnifiedOrderTest extends AbstractIntegrationTestCase
         $merchant->setMchId('test_merchant_integration');
         $merchant->setCertSerial('test_cert_serial');
         $merchant->setPemKey('test_key');
+        $merchant->setApiKey('test_api_key');
 
         $entityManager->persist($merchant);
         $entityManager->flush();
@@ -76,6 +77,7 @@ final class UnifiedOrderTest extends AbstractIntegrationTestCase
         $merchant->setMchId('test_merchant_order');
         $merchant->setCertSerial('test_cert_order');
         $merchant->setPemKey('test_key');
+        $merchant->setApiKey('test_api_key');
         $entityManager->persist($merchant);
 
         // 创建测试支付订单
@@ -154,6 +156,7 @@ final class UnifiedOrderTest extends AbstractIntegrationTestCase
             $merchant->setMchId('test_tx_merchant');
             $merchant->setCertSerial('test_tx_cert');
             $merchant->setPemKey('test_tx_key');
+            $merchant->setApiKey('test_api_key');
 
             $entityManager->persist($merchant);
             $entityManager->flush();
