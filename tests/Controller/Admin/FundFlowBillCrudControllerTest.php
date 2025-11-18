@@ -57,12 +57,6 @@ final class FundFlowBillCrudControllerTest extends AbstractEasyAdminControllerTe
         $this->assertSame('WechatPayBundle\Entity\FundFlowBill', $entityFqcn);
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $controller = self::getService(FundFlowBillCrudController::class);
-        $this->assertSame('WechatPayBundle\Entity\FundFlowBill', $controller::getEntityFqcn());
-    }
-
     public function testRequiredFieldValidation(): void
     {
         $client = self::createClientWithDatabase();

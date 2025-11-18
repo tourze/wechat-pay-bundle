@@ -69,12 +69,6 @@ final class MerchantCrudControllerTest extends AbstractEasyAdminControllerTestCa
         $this->assertSame('WechatPayBundle\Entity\Merchant', $entityFqcn);
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $controller = self::getService(MerchantCrudController::class);
-        $this->assertSame('WechatPayBundle\Entity\Merchant', $controller::getEntityFqcn());
-    }
-
     public function testRequiredFieldValidation(): void
     {
         $client = self::createClientWithDatabase();

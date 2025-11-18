@@ -83,12 +83,6 @@ final class RefundOrderCrudControllerTest extends AbstractEasyAdminControllerTes
         $this->assertSame('WechatPayBundle\Entity\RefundOrder', $entityFqcn);
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $controller = self::getService(RefundOrderCrudController::class);
-        $this->assertSame('WechatPayBundle\Entity\RefundOrder', $controller::getEntityFqcn());
-    }
-
     public function testRequiredFieldValidation(): void
     {
         $client = self::createClientWithDatabase();

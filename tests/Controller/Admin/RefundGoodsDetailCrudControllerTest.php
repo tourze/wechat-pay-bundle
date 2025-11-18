@@ -72,12 +72,6 @@ final class RefundGoodsDetailCrudControllerTest extends AbstractEasyAdminControl
         $this->assertSame('WechatPayBundle\Entity\RefundGoodsDetail', $entityFqcn);
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $controller = self::getService(RefundGoodsDetailCrudController::class);
-        $this->assertSame('WechatPayBundle\Entity\RefundGoodsDetail', $controller::getEntityFqcn());
-    }
-
     public function testRequiredFieldValidation(): void
     {
         $client = self::createClientWithDatabase();

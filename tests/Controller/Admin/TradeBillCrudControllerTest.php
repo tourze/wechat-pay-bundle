@@ -81,12 +81,6 @@ final class TradeBillCrudControllerTest extends AbstractEasyAdminControllerTestC
         $this->assertSame('WechatPayBundle\Entity\TradeBill', $entityFqcn);
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $controller = self::getService(TradeBillCrudController::class);
-        $this->assertSame('WechatPayBundle\Entity\TradeBill', $controller::getEntityFqcn());
-    }
-
     public function testRequiredFieldValidation(): void
     {
         $client = self::createClientWithDatabase();

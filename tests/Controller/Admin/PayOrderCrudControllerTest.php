@@ -110,12 +110,6 @@ final class PayOrderCrudControllerTest extends AbstractEasyAdminControllerTestCa
         $this->assertSame('WechatPayBundle\Entity\PayOrder', $entityFqcn);
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $controller = self::getService(PayOrderCrudController::class);
-        $this->assertSame('WechatPayBundle\Entity\PayOrder', $controller::getEntityFqcn());
-    }
-
     public function testRequiredFieldValidation(): void
     {
         $client = self::createClientWithDatabase();
