@@ -31,6 +31,7 @@ class MerchantFixtures extends Fixture implements FixtureGroupInterface
         $testMerchant->setValid(true);
         $testMerchant->setMchId('1234567890');
         $testMerchant->setApiKey('test_api_key_1234567890abcdef1234567890abcdef');
+        $testMerchant->setApiKeyV3('test_api_key_v3_1234567890abcdef1234567890');
         $testMerchant->setPemKey('-----BEGIN PRIVATE KEY-----
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7...TEST_KEY...
 -----END PRIVATE KEY-----');
@@ -47,6 +48,7 @@ MIIDpTCCAo2gAwIBAgIUNzAwRG...TEST_CERT...
         $demoMerchant->setValid(false);
         $demoMerchant->setMchId('0987654321');
         $demoMerchant->setApiKey('demo_api_key_abcdef1234567890abcdef1234567890');
+        $demoMerchant->setApiKeyV3('demo_api_key_v3_abcdef1234567890abcdef12345');
         $demoMerchant->setPemKey('-----BEGIN PRIVATE KEY-----
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7...DEMO_KEY...
 -----END PRIVATE KEY-----');

@@ -55,6 +55,15 @@ final class MerchantTest extends AbstractEntityTestCase
     }
 
     /**
+     * 测试设置和获取API密钥V3
+     */
+    public function testApiKeyV3(): void
+    {
+        $this->merchant->setApiKeyV3('test_api_key_v3');
+        $this->assertEquals('test_api_key_v3', $this->merchant->getApiKeyV3());
+    }
+
+    /**
      * 测试设置和获取商户API私钥
      */
     public function testPemKey(): void
@@ -175,6 +184,7 @@ final class MerchantTest extends AbstractEntityTestCase
     {
         $this->merchant->setMchId('1234567890');
         $this->merchant->setApiKey('api_key');
+        $this->merchant->setApiKeyV3('api_key_v3');
         $this->merchant->setPemKey('pem_key');
         $this->merchant->setCertSerial('cert_serial');
         $this->merchant->setPemCert('pem_cert');
@@ -185,6 +195,7 @@ final class MerchantTest extends AbstractEntityTestCase
 
         $this->assertEquals('1234567890', $this->merchant->getMchId());
         $this->assertEquals('api_key', $this->merchant->getApiKey());
+        $this->assertEquals('api_key_v3', $this->merchant->getApiKeyV3());
         $this->assertEquals('pem_key', $this->merchant->getPemKey());
         $this->assertEquals('cert_serial', $this->merchant->getCertSerial());
         $this->assertEquals('pem_cert', $this->merchant->getPemCert());
@@ -192,5 +203,23 @@ final class MerchantTest extends AbstractEntityTestCase
         $this->assertTrue($this->merchant->isValid());
         $this->assertEquals('user1', $this->merchant->getCreatedBy());
         $this->assertEquals('user2', $this->merchant->getUpdatedBy());
+    }
+
+    /**
+     * 测试设置和获取微信支付公钥
+     */
+    public function testPublicKey(): void
+    {
+        $this->merchant->setPublicKey('public_key');
+        $this->assertEquals('public_key', $this->merchant->getPublicKey());
+    }
+
+    /**
+     * 测试设置和获取微信支付公钥ID
+     */
+    public function testPublicKeyId(): void
+    {
+        $this->merchant->setPublicKeyId('public_key_id');
+        $this->assertEquals('public_key_id', $this->merchant->getPublicKeyId());
     }
 }

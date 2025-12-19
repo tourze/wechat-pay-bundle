@@ -42,7 +42,7 @@ final class RefundCheckOrderStatusCommandTest extends AbstractCommandTestCase
         $this->assertInstanceOf(Command::class, $command);
 
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         $command = $application->find('wechat:refund:check-order-status');
         $this->commandTester = new CommandTester($command);

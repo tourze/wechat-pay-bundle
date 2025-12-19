@@ -15,26 +15,33 @@ class WechatPayBuilder
         $merchantId = $merchant->getMchId();
 
         $pemKey = $merchant->getPemKey();
-        // 从本地文件中加载「微信支付平台证书」，用来验证微信支付应答的签名
-        $platformCertificateFilePath = $merchant->getPemCert();
 
-        // 从本地文件中加载「商户API私钥」，「商户API私钥」会用来生成请求的签名
-        $merchantPrivateKeyInstance = Rsa::from($pemKey, Rsa::KEY_TYPE_PRIVATE);
+        // 从本地文件中加载「商户API私钥」，用于生成请求的签名
+        $merchantPrivateKeyFilePath = $pemKey;
+        $merchantPrivateKeyInstance = Rsa::from($merchantPrivateKeyFilePath, Rsa::KEY_TYPE_PRIVATE);
+
         // 「商户API证书」的「证书序列号」
         $merchantCertificateSerial = $merchant->getCertSerial();
-        $platformPublicKeyInstance = $this->getPlatformPublicKey($merchant);
-        // 从「微信支付平台证书」中获取「证书序列号」
-        $platformCertificateSerial = $this->getPlatformCertificateSerial($merchant);
 
-        // 构造一个 APIv3 客户端实例
-        return Builder::factory([
-            'mchid' => $merchantId,
-            'serial' => $merchantCertificateSerial,
+        // 从本地文件中加载「微信支付公钥」，用来验证微信支付应答的签名
+        $platformPublicKeyFilePath = $merchant->getPublicKey();
+        $platformPublicKeyInstance = Rsa::from($platformPublicKeyFilePath, Rsa::KEY_TYPE_PUBLIC);
+
+        // 「微信支付公钥」的「微信支付公钥ID」
+        // 需要在 商户平台 -> 账户中心 -> API安全 查询
+        $platformPublicKeyId = $merchant->getPublicKeyId();
+
+        // 构造一个 APIv3 客户端实例(微信支付公钥模式)
+        $instance = Builder::factory([
+            'mchid'      => $merchantId,
+            'serial'     => $merchantCertificateSerial,
             'privateKey' => $merchantPrivateKeyInstance,
-            'certs' => [
-                $platformCertificateSerial => $platformPublicKeyInstance,
-            ],
+            'certs'      => [
+                $platformPublicKeyId => $platformPublicKeyInstance,
+            ]
         ]);
+
+        return $instance;
     }
 
     /**

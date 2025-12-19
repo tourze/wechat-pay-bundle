@@ -42,7 +42,7 @@ final class PayCheckOrderExpireCommandTest extends AbstractCommandTestCase
         $this->assertInstanceOf(Command::class, $command);
 
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         $command = $application->find('wechat:pay:check-order-expire');
         $this->commandTester = new CommandTester($command);

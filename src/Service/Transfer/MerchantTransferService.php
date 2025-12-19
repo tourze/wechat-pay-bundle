@@ -7,6 +7,7 @@ namespace WechatPayBundle\Service\Transfer;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use WeChatPay\BuilderChainable;
 use WeChatPay\Crypto\Rsa;
 use WechatPayBundle\Entity\Merchant;
@@ -15,6 +16,7 @@ use WechatPayBundle\Repository\MerchantRepository;
 use WechatPayBundle\Service\WechatPayBuilder;
 use Yiisoft\Json\Json;
 
+#[Autoconfigure(public: true)]
 #[WithMonologChannel(channel: 'wechat_pay')]
 final class MerchantTransferService implements MerchantTransferServiceInterface
 {

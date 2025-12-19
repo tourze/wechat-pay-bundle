@@ -6,9 +6,9 @@ namespace WechatPayBundle\Service;
 
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-final class WechatPayClient
+final readonly class WechatPayClient
 {
-    public function __construct(private readonly HttpClientInterface $httpClient)
+    public function __construct(private HttpClientInterface $httpClient)
     {
     }
 

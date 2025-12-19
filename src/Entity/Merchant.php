@@ -36,23 +36,33 @@ class Merchant implements \Stringable
     #[Assert\Length(max: 64, maxMessage: '商户号长度不能超过 {{ limit }} 个字符')]
     private string $mchId;
 
-    #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '秘钥key'])]
-    #[Assert\NotBlank(message: 'API秘钥不能为空')]
+    #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '秘钥key'])]
     #[Assert\Length(max: 100, maxMessage: 'API秘钥长度不能超过 {{ limit }} 个字符')]
     private ?string $apiKey = null;
+
+    #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '秘钥key v3版本，如果有优先读取这个，否则默认度取apiKey'])]
+    #[Assert\Length(max: 100, maxMessage: 'API秘钥长度不能超过 {{ limit }} 个字符')]
+    private ?string $apiKeyV3 = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '商户API私钥'])]
     #[Assert\Length(max: 10000, maxMessage: '商户API私钥内容过长')]
     private ?string $pemKey = null;
 
-    #[ORM\Column(type: Types::STRING, length: 128, options: ['comment' => '证书序列号'])]
-    #[Assert\NotBlank(message: '证书序列号不能为空')]
+    #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '证书序列号'])]
     #[Assert\Length(max: 128, maxMessage: '证书序列号长度不能超过 {{ limit }} 个字符')]
     private ?string $certSerial = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '微信支付平台证书'])]
     #[Assert\Length(max: 10000, maxMessage: '微信支付平台证书内容过长')]
     private ?string $pemCert = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '微信支付公钥'])]
+    #[Assert\Length(max: 10000, maxMessage: '微信')]
+    private ?string $publicKey = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '微信支付公钥ID'])]
+    #[Assert\Length(max: 200, maxMessage: '微信')]
+    private ?string $publicKeyId = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
     #[Assert\Length(max: 100, maxMessage: '备注长度不能超过 {{ limit }} 个字符')]
@@ -92,7 +102,7 @@ class Merchant implements \Stringable
         return $this->apiKey;
     }
 
-    public function setApiKey(string $apiKey): void
+    public function setApiKey(?string $apiKey): void
     {
         $this->apiKey = $apiKey;
     }
@@ -132,7 +142,7 @@ class Merchant implements \Stringable
         return $this->certSerial;
     }
 
-    public function setCertSerial(string $certSerial): void
+    public function setCertSerial(?string $certSerial): void
     {
         $this->certSerial = $certSerial;
     }
@@ -140,5 +150,53 @@ class Merchant implements \Stringable
     public function getKey(): ?string
     {
         return $this->getApiKey();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getApiKeyV3(): ?string
+    {
+        return $this->apiKeyV3;
+    }
+
+    /**
+     * @param string|null $apiKeyV3
+     */
+    public function setApiKeyV3(?string $apiKeyV3): void
+    {
+        $this->apiKeyV3 = $apiKeyV3;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPublicKey(): ?string
+    {
+        return $this->publicKey;
+    }
+
+    /**
+     * @param string|null $publicKey
+     */
+    public function setPublicKey(?string $publicKey): void
+    {
+        $this->publicKey = $publicKey;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPublicKeyId(): ?string
+    {
+        return $this->publicKeyId;
+    }
+
+    /**
+     * @param string|null $publicKeyId
+     */
+    public function setPublicKeyId(?string $publicKeyId): void
+    {
+        $this->publicKeyId = $publicKeyId;
     }
 }
