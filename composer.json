@@ -44,7 +44,7 @@
     "tourze/enum-extra": "1.0.*",
     "tourze/file-storage-bundle": "1.1.*",
     "tourze/http-client-bundle": "1.1.*",
-    "tourze/symfony-cron-job-bundle": "1.1.*",
+    "tourze/symfony-cron-job-bundle": "1.2.*",
     "tourze/symfony-routing-auto-loader-bundle": "1.0.*",
     "tourze/symfony-snowflake-bundle": "1.0.*",
     "tourze/xml-helper": "0.0.*",
